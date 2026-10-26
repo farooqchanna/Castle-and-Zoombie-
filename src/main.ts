@@ -1,24 +1,13 @@
-import Phaser from 'phaser';
-import { gameConfig } from './config';
-import { BootScene } from './scenes/BootScene';
-import { MenuScene } from './scenes/MenuScene';
-import { CastleScene } from './scenes/CastleScene';
-import { BattleScene } from './scenes/BattleScene';
-import { PerkScene } from './scenes/PerkScene';
-import { GameOverScene } from './scenes/GameOverScene';
+import { Game3D } from './3d/Game3D';
+import { UIManager } from './ui/UIManager';
 
-window.addEventListener('load', () => {
-  const config: Phaser.Types.Core.GameConfig = {
-    ...gameConfig,
-    scene: [
-      BootScene,
-      MenuScene,
-      CastleScene,
-      BattleScene,
-      PerkScene,
-      GameOverScene,
-    ],
-  };
+window.addEventListener('DOMContentLoaded', () => {
+  const container = document.getElementById('game-container');
+  if (!container) return;
 
-  new Phaser.Game(config);
+  const game = new Game3D(container);
+  new UIManager(game);
+
+  // Start initial defense wave
+  game.startWave(game.currentWave);
 });

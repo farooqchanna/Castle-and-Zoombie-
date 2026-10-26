@@ -1,6 +1,6 @@
-import Phaser from 'phaser';
+import { SimpleEventEmitter } from '../utils/EventEmitter';
 
-export type CitizenRole = 'soldier' | 'collector' | 'explorer';
+export type CitizenRole = 'soldier' | 'collector';
 export type SoldierRank = 'rookie' | 'captain' | 'major' | 'archer';
 
 export interface CitizenData {
@@ -10,12 +10,12 @@ export interface CitizenData {
   rank: SoldierRank;
 }
 
-export class CitizenManager extends Phaser.Events.EventEmitter {
+export class CitizenManager extends SimpleEventEmitter {
   private static instance: CitizenManager;
   public citizens: CitizenData[] = [
     { id: 'cit_1', name: 'Alden', role: 'soldier', rank: 'rookie' },
   ];
-  public maxCitizens: number = 3;
+  public maxCitizens: number = 4;
 
   private constructor() {
     super();
@@ -32,14 +32,19 @@ export class CitizenManager extends Phaser.Events.EventEmitter {
     return this.citizens;
   }
 
+  public setCitizens(citizens: CitizenData[]): void {
+    this.citizens = citizens;
+    this.emit('roster-changed', this.citizens);
+  }
+
   public hireCitizen(role: CitizenRole = 'soldier'): boolean {
     if (this.citizens.length >= this.maxCitizens) return false;
 
-    const names = ['Berrick', 'Corin', 'Dallan', 'Elden', 'Fendrel', 'Garin', 'Halbert', 'Kael'];
+    const names = ['Berrick', 'Corin', 'Dallan', 'Elden', 'Fendrel', 'Garin', 'Halbert', 'Kael', 'Rowan', 'Torin'];
     const randomName = names[Math.floor(Math.random() * names.length)];
 
     const newCitizen: CitizenData = {
-      id: `cit_${Date.now()}`,
+      id: `cit_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
       name: randomName,
       role,
       rank: 'rookie',

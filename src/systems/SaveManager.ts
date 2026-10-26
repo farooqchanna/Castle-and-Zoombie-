@@ -6,13 +6,14 @@ export interface SaveData {
   wallHp: number;
   wallMaxHp: number;
   arrowDamage: number;
+  fireRateLevel: number;
   citizens: CitizenData[];
   maxCitizens: number;
   perks: string[];
   timestamp: number;
 }
 
-const STORAGE_KEY = 'zombie_castle_defense_v1_save';
+const STORAGE_KEY = 'zombie_castle_defense_3d_save';
 
 export class SaveManager {
   private static instance: SaveManager;
@@ -77,11 +78,12 @@ export class SaveManager {
     return {
       wave: 1,
       coins: 50,
-      wallHp: 200,
-      wallMaxHp: 200,
-      arrowDamage: 15,
+      wallHp: 250,
+      wallMaxHp: 250,
+      arrowDamage: 18,
+      fireRateLevel: 1,
       citizens: [{ id: 'cit_1', name: 'Alden', role: 'soldier', rank: 'rookie' }],
-      maxCitizens: 3,
+      maxCitizens: 4,
       perks: [],
       timestamp: Date.now(),
     };

@@ -1,7 +1,7 @@
-import Phaser from 'phaser';
+import { SimpleEventEmitter } from '../utils/EventEmitter';
 import { PERK_POOL, Perk } from '../data/perks';
 
-export class PerkManager extends Phaser.Events.EventEmitter {
+export class PerkManager extends SimpleEventEmitter {
   private static instance: PerkManager;
   private activePerkIds: Set<string> = new Set();
 
@@ -29,15 +29,18 @@ export class PerkManager extends Phaser.Events.EventEmitter {
     return Array.from(this.activePerkIds);
   }
 
+  public setPerks(perks: string[]): void {
+    this.activePerkIds = new Set(perks);
+    this.emit('perks-updated', this.getActivePerkIds());
+  }
+
   public reset(): void {
     this.activePerkIds.clear();
   }
 
   public getRandomSelection(count: number = 3): Perk[] {
-    // Exclude already acquired perks if they shouldn't be duplicated
     const available = PERK_POOL.filter((p) => !this.activePerkIds.has(p.id));
     const pool = available.length >= count ? available : PERK_POOL;
-
     const shuffled = [...pool].sort(() => Math.random() - 0.5);
     return shuffled.slice(0, Math.min(count, shuffled.length));
   }

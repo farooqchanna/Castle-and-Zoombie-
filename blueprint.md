@@ -21,7 +21,7 @@ A browser-based action/strategy defense game where players defend a castle again
 | Layer | Technology | Reason |
 |---|---|---|
 | **Language** | TypeScript (strict mode) | Strong typing prevents state/data bugs across citizen roles, ranks, and upgrades. |
-| **Game Engine** | Phaser 3 | Industry-standard 2D web engine with physics, sprite batches, input handling, and sound. |
+| **Game Engine** | Three.js (WebGL / 3D) | High-performance 3D rendering with soft shadows, atmospheric lighting, dynamic camera modes, and procedural materials. |
 | **Build Tool** | Vite | Instant HMR development server and optimized production bundles. |
 | **Persistence** | `localStorage` (v1) | Zero-backend state persistence with schema validation and fallback defaults. |
 | **Deployment** | Vercel / GitHub Pages | Automated CI/CD static hosting. |

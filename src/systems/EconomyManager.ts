@@ -1,8 +1,8 @@
-import Phaser from 'phaser';
+import { SimpleEventEmitter } from '../utils/EventEmitter';
 
-export class EconomyManager extends Phaser.Events.EventEmitter {
+export class EconomyManager extends SimpleEventEmitter {
   private static instance: EconomyManager;
-  private coins: number = 50; // Starting gold balance
+  private coins: number = 50;
 
   private constructor() {
     super();
