@@ -138,13 +138,13 @@ export class ModelFactory {
     torch.add(sconce);
 
     const flameGeo = new THREE.ConeGeometry(0.18, 0.45, 8);
-    const flameMat = new THREE.MeshBasicMaterial({ color: 0xff7700 });
+    const flameMat = new THREE.MeshBasicMaterial({ color: 0xffaa00 });
     const flame = new THREE.Mesh(flameGeo, flameMat);
     flame.position.set(0.1, 0.35, 0);
     flame.name = 'Flame';
     torch.add(flame);
 
-    const light = new THREE.PointLight(0xffaa44, 2.0, 14, 1.5);
+    const light = new THREE.PointLight(0xffbb33, 2.8, 16, 1.2);
     light.position.set(0.1, 0.4, 0.2);
     light.name = 'TorchLight';
     torch.add(light);
@@ -175,122 +175,339 @@ export class ModelFactory {
     return cauldron;
   }
 
-  // 3D Defender Model
+  // =========================================================================
+  // BOY SCOUT DEFENDER & COLLECTOR WITH BIONIC MECHANICAL ARMS
+  // (Matching User's Reference Sample Exactly!)
+  // =========================================================================
+
   public static createDefender(rank: SoldierRank = 'rookie'): THREE.Group {
-    const defender = new THREE.Group();
-    defender.name = 'Defender';
-
-    let clothMat = GameMaterials.clothRookie;
-    if (rank === 'captain') clothMat = GameMaterials.clothCaptain;
-    if (rank === 'major') clothMat = GameMaterials.clothMajor;
-    if (rank === 'archer') clothMat = GameMaterials.clothArcher;
-
-    const torsoGeo = new THREE.BoxGeometry(0.7, 0.85, 0.45);
-    const torso = new THREE.Mesh(torsoGeo, clothMat);
-    torso.position.y = 0.95;
-    torso.castShadow = true;
-    defender.add(torso);
-
-    const headGeo = new THREE.BoxGeometry(0.42, 0.42, 0.42);
-    const head = new THREE.Mesh(headGeo, GameMaterials.skinHuman);
-    head.position.y = 1.6;
-    head.castShadow = true;
-    defender.add(head);
-
-    const helmGeo = new THREE.BoxGeometry(0.46, 0.22, 0.46);
-    const helmMat = (rank === 'major' || rank === 'captain') ? GameMaterials.ironTrim : clothMat;
-    const helm = new THREE.Mesh(helmGeo, helmMat);
-    helm.position.y = 1.78;
-    defender.add(helm);
-
-    const armGeo = new THREE.BoxGeometry(0.2, 0.65, 0.2);
-    const leftArm = new THREE.Mesh(armGeo, clothMat);
-    leftArm.position.set(-0.46, 0.95, 0.2);
-    leftArm.rotation.x = -Math.PI / 4;
-    leftArm.name = 'LeftArm';
-    defender.add(leftArm);
-
-    const rightArm = new THREE.Mesh(armGeo, clothMat);
-    rightArm.position.set(0.46, 0.95, 0);
-    rightArm.name = 'RightArm';
-    defender.add(rightArm);
-
-    const legGeo = new THREE.BoxGeometry(0.24, 0.65, 0.24);
-    const legMat = new THREE.MeshStandardMaterial({ color: 0x3e2723, roughness: 0.9 });
-    const leftLeg = new THREE.Mesh(legGeo, legMat);
-    leftLeg.position.set(-0.2, 0.32, 0);
-    defender.add(leftLeg);
-
-    const rightLeg = new THREE.Mesh(legGeo, legMat);
-    rightLeg.position.set(0.2, 0.32, 0);
-    defender.add(rightLeg);
-
-    const bow = this.createBow();
-    bow.position.set(-0.52, 0.95, 0.55);
-    bow.name = 'Bow';
-    defender.add(bow);
-
-    const quiverGeo = new THREE.CylinderGeometry(0.14, 0.1, 0.7, 8);
-    const quiver = new THREE.Mesh(quiverGeo, GameMaterials.castleWood);
-    quiver.position.set(0.2, 1.1, -0.32);
-    quiver.rotation.z = -0.3;
-    defender.add(quiver);
-
-    return defender;
+    return this.createScoutCharacter('soldier', rank);
   }
 
-  // 3D Collector Model
   public static createCollector(): THREE.Group {
-    const collector = new THREE.Group();
-    collector.name = 'Collector';
+    return this.createScoutCharacter('collector', 'rookie');
+  }
 
-    const torsoGeo = new THREE.BoxGeometry(0.65, 0.8, 0.4);
-    const torso = new THREE.Mesh(torsoGeo, GameMaterials.clothCollector);
-    torso.position.y = 0.9;
-    torso.castShadow = true;
-    collector.add(torso);
+  public static createScoutCharacter(role: 'soldier' | 'collector', rank: SoldierRank = 'rookie'): THREE.Group {
+    const scout = new THREE.Group();
+    scout.name = role === 'soldier' ? `Scout_Soldier_${rank}` : 'Scout_Collector';
 
-    const headGeo = new THREE.BoxGeometry(0.4, 0.4, 0.4);
-    const head = new THREE.Mesh(headGeo, GameMaterials.skinHuman);
-    head.position.y = 1.5;
+    // -------------------------------------------------------------
+    // 1. HEAD & CARTOON FACE
+    // -------------------------------------------------------------
+    const headGroup = new THREE.Group();
+    headGroup.name = 'HeadGroup';
+    headGroup.position.set(0, 1.45, 0);
+
+    // Stylized boy head
+    const headGeo = new THREE.SphereGeometry(0.38, 20, 18);
+    headGeo.scale(1.0, 1.05, 0.95);
+    const head = new THREE.Mesh(headGeo, GameMaterials.skinScout);
+    head.name = 'Head';
     head.castShadow = true;
-    collector.add(head);
+    headGroup.add(head);
 
-    const capGeo = new THREE.BoxGeometry(0.44, 0.18, 0.44);
-    const cap = new THREE.Mesh(capGeo, GameMaterials.clothCollector);
-    cap.position.y = 1.68;
-    collector.add(cap);
+    // Big expressive cartoon anime blue eyes with Star Sparkle pupils!
+    const eyeGeo = new THREE.SphereGeometry(0.16, 16, 14);
 
-    const armGeo = new THREE.BoxGeometry(0.18, 0.6, 0.18);
-    const leftArm = new THREE.Mesh(armGeo, GameMaterials.clothCollector);
-    leftArm.position.set(-0.42, 0.9, 0);
-    leftArm.name = 'LeftArm';
-    collector.add(leftArm);
+    const leftEye = new THREE.Mesh(eyeGeo, GameMaterials.eyeMatScout);
+    leftEye.position.set(-0.16, 0.04, 0.28);
+    leftEye.rotation.y = -Math.PI / 2;
+    headGroup.add(leftEye);
 
-    const rightArm = new THREE.Mesh(armGeo, GameMaterials.clothCollector);
-    rightArm.position.set(0.42, 0.9, 0);
-    rightArm.name = 'RightArm';
-    collector.add(rightArm);
+    const rightEye = new THREE.Mesh(eyeGeo, GameMaterials.eyeMatScout);
+    rightEye.position.set(0.16, 0.04, 0.28);
+    rightEye.rotation.y = -Math.PI / 2;
+    headGroup.add(rightEye);
 
-    const legGeo = new THREE.BoxGeometry(0.22, 0.6, 0.22);
-    const legMat = new THREE.MeshStandardMaterial({ color: 0x424242, roughness: 0.9 });
-    const leftLeg = new THREE.Mesh(legGeo, legMat);
-    leftLeg.position.set(-0.18, 0.3, 0);
-    leftLeg.name = 'LeftLeg';
-    collector.add(leftLeg);
+    // Friendly cartoon smile / mouth with white teeth
+    const mouthGeo = new THREE.BoxGeometry(0.2, 0.08, 0.08);
+    const mouth = new THREE.Mesh(mouthGeo, GameMaterials.mouthCavity);
+    mouth.position.set(0, -0.16, 0.32);
+    headGroup.add(mouth);
 
-    const rightLeg = new THREE.Mesh(legGeo, legMat);
-    rightLeg.position.set(0.18, 0.3, 0);
-    rightLeg.name = 'RightLeg';
-    collector.add(rightLeg);
+    const teethGeo = new THREE.BoxGeometry(0.16, 0.04, 0.06);
+    const teeth = new THREE.Mesh(teethGeo, new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3 }));
+    teeth.position.set(0, -0.14, 0.33);
+    headGroup.add(teeth);
 
-    const sackGeo = new THREE.SphereGeometry(0.32, 8, 8);
-    const sackMat = new THREE.MeshStandardMaterial({ color: 0xd7ccc8, roughness: 0.8 });
-    const sack = new THREE.Mesh(sackGeo, sackMat);
-    sack.position.set(-0.35, 0.7, -0.2);
-    collector.add(sack);
+    // Cartoon round ears
+    const earGeo = new THREE.TorusGeometry(0.09, 0.03, 8, 14);
+    const leftEar = new THREE.Mesh(earGeo, GameMaterials.skinScout);
+    leftEar.position.set(-0.38, 0, 0);
+    leftEar.rotation.y = Math.PI / 2;
+    headGroup.add(leftEar);
 
-    return collector;
+    const rightEar = new THREE.Mesh(earGeo, GameMaterials.skinScout);
+    rightEar.position.set(0.38, 0, 0);
+    rightEar.rotation.y = -Math.PI / 2;
+    headGroup.add(rightEar);
+
+    // Blonde Swept Quiff / Pompadour Hair (Direct match to reference image!)
+    const hairGroup = new THREE.Group();
+    // Front sweeping pompadour wave
+    const quiffGeo = new THREE.CapsuleGeometry(0.14, 0.28, 8, 8);
+    quiffGeo.rotateX(Math.PI / 3);
+    quiffGeo.rotateZ(0.2);
+    const quiff = new THREE.Mesh(quiffGeo, GameMaterials.scoutBlondeHair);
+    quiff.position.set(-0.06, 0.36, 0.22);
+    hairGroup.add(quiff);
+
+    // Hair back/top volume
+    const hairCapGeo = new THREE.SphereGeometry(0.36, 16, 12, 0, Math.PI * 2, 0, Math.PI / 1.8);
+    const hairCap = new THREE.Mesh(hairCapGeo, GameMaterials.scoutBlondeHair);
+    hairCap.position.set(0, 0.08, -0.05);
+    hairGroup.add(hairCap);
+
+    headGroup.add(hairGroup);
+
+    // Green Scout Side Cap (Forage Cap) perched jauntily on head
+    const capGeo = new THREE.BoxGeometry(0.24, 0.16, 0.36);
+    const cap = new THREE.Mesh(capGeo, GameMaterials.scoutCapGreen);
+    cap.position.set(0.14, 0.34, -0.04);
+    cap.rotation.z = -0.25;
+    cap.rotation.x = -0.1;
+    headGroup.add(cap);
+
+    // Major / Captain Rank Flair
+    if (rank === 'major') {
+      // Crimson vanguard beret badge
+      const badgeGeo = new THREE.SphereGeometry(0.06, 8, 8);
+      const badge = new THREE.Mesh(badgeGeo, new THREE.MeshStandardMaterial({ color: 0xff1744, metalness: 0.8 }));
+      badge.position.set(0.24, 0.38, 0.1);
+      headGroup.add(badge);
+    } else if (rank === 'archer') {
+      // Golden master ranger feather
+      const featherGeo = new THREE.ConeGeometry(0.04, 0.28, 4);
+      const feather = new THREE.Mesh(featherGeo, GameMaterials.goldCoin);
+      feather.position.set(0.22, 0.46, -0.05);
+      feather.rotation.z = -0.4;
+      headGroup.add(feather);
+    }
+
+    scout.add(headGroup);
+
+    // -------------------------------------------------------------
+    // 2. SCOUT UNIFORM & TORSO
+    // -------------------------------------------------------------
+    // Neck
+    const neckGeo = new THREE.CylinderGeometry(0.1, 0.12, 0.22, 10);
+    const neck = new THREE.Mesh(neckGeo, GameMaterials.skinScout);
+    neck.position.set(0, 1.25, 0);
+    scout.add(neck);
+
+    // Scout Collared Shirt
+    const shirtGeo = new THREE.CylinderGeometry(0.32, 0.36, 0.62, 12);
+    const shirt = new THREE.Mesh(shirtGeo, GameMaterials.scoutShirtGreen);
+    shirt.position.set(0, 0.9, 0);
+    shirt.castShadow = true;
+    scout.add(shirt);
+
+    // Scout Neckerchief / Scarf (Rust brown for soldier, Orange for collector)
+    const scarfMat = role === 'collector' ? GameMaterials.scoutScarfOrange : GameMaterials.scoutScarfRust;
+    const scarfGeo = new THREE.ConeGeometry(0.28, 0.26, 4);
+    scarfGeo.rotateX(Math.PI);
+    const scarf = new THREE.Mesh(scarfGeo, scarfMat);
+    scarf.position.set(0, 1.12, 0.18);
+    scarf.scale.set(1.0, 0.7, 0.5);
+    scout.add(scarf);
+
+    // Gold Slide Woggle / Ring on neckerchief
+    const woggleGeo = new THREE.TorusGeometry(0.06, 0.025, 8, 12);
+    const woggle = new THREE.Mesh(woggleGeo, GameMaterials.goldWoggle);
+    woggle.position.set(0, 1.05, 0.24);
+    scout.add(woggle);
+
+    // Brown Leather Belt with Gold Buckle
+    const beltGeo = new THREE.CylinderGeometry(0.37, 0.37, 0.08, 12);
+    const belt = new THREE.Mesh(beltGeo, GameMaterials.scoutBelt);
+    belt.position.set(0, 0.62, 0);
+    scout.add(belt);
+
+    const buckleGeo = new THREE.BoxGeometry(0.12, 0.1, 0.06);
+    const buckle = new THREE.Mesh(buckleGeo, GameMaterials.goldWoggle);
+    buckle.position.set(0, 0.62, 0.36);
+    scout.add(buckle);
+
+    // -------------------------------------------------------------
+    // 3. CYBERNETIC MECHANICAL / BIONIC ARMS & HANDS
+    // (Direct from Reference Image: Bionic Elbow, Chrome Forearm & Mechanical Hand!)
+    // -------------------------------------------------------------
+
+    // LEFT ARM (Bionic Gauntlet Arm)
+    const leftArmGroup = new THREE.Group();
+    leftArmGroup.name = 'LeftArm';
+
+    // Short scout sleeve
+    const sleeveGeo = new THREE.CylinderGeometry(0.12, 0.14, 0.22, 10);
+    const sleeveL = new THREE.Mesh(sleeveGeo, GameMaterials.scoutShirtGreen);
+    sleeveL.position.set(0, -0.1, 0);
+    leftArmGroup.add(sleeveL);
+
+    // Flesh upper arm
+    const armUpperGeo = new THREE.CylinderGeometry(0.09, 0.085, 0.26, 8);
+    const armUpperL = new THREE.Mesh(armUpperGeo, GameMaterials.skinScout);
+    armUpperL.position.set(0, -0.28, 0);
+    leftArmGroup.add(armUpperL);
+
+    // Mechanical Bionic Elbow Hinge (Chrome + Dark hydraulic joint)
+    const elbowGeo = new THREE.CylinderGeometry(0.09, 0.09, 0.12, 8);
+    elbowGeo.rotateZ(Math.PI / 2);
+    const elbowL = new THREE.Mesh(elbowGeo, GameMaterials.bionicJointDark);
+    elbowL.position.set(0, -0.42, 0);
+    leftArmGroup.add(elbowL);
+
+    // Cybernetic Mechanical Forearm Casing
+    const forearmGeo = new THREE.BoxGeometry(0.18, 0.34, 0.18);
+    const forearmL = new THREE.Mesh(forearmGeo, GameMaterials.bionicMetalChrome);
+    forearmL.position.set(0, -0.58, 0.14);
+    forearmL.rotation.x = Math.PI / 4;
+    leftArmGroup.add(forearmL);
+
+    if (role === 'soldier') {
+      // Soldier Bionic Hand holds Bow or Wrist Launcher
+      const handGeo = new THREE.BoxGeometry(0.16, 0.12, 0.18);
+      const handL = new THREE.Mesh(handGeo, GameMaterials.bionicKnuckles);
+      handL.position.set(0, -0.72, 0.28);
+      leftArmGroup.add(handL);
+
+      // Bow attached to Bionic Left Hand
+      const bow = this.createBow();
+      bow.position.set(0, -0.72, 0.38);
+      bow.name = 'Bow';
+      leftArmGroup.add(bow);
+    } else {
+      // Collector GIANT MECHANICAL SCOOP / COIN HARVESTER HAND! (From Image!)
+      const palmGeo = new THREE.BoxGeometry(0.24, 0.08, 0.22);
+      const palmL = new THREE.Mesh(palmGeo, GameMaterials.bionicMetalChrome);
+      palmL.position.set(0, -0.72, 0.28);
+      leftArmGroup.add(palmL);
+
+      // Articulating mechanical finger segments
+      const fingerGeo = new THREE.CylinderGeometry(0.035, 0.03, 0.22, 6);
+      for (let f = -1.5; f <= 1.5; f++) {
+        const finger = new THREE.Mesh(fingerGeo, GameMaterials.bionicKnuckles);
+        finger.position.set(f * 0.065, -0.84, 0.38);
+        finger.rotation.x = Math.PI / 3.5;
+        leftArmGroup.add(finger);
+      }
+    }
+
+    leftArmGroup.position.set(-0.46, 1.15, 0);
+    scout.add(leftArmGroup);
+
+    // RIGHT ARM (Bionic Power Fist - from Image!)
+    const rightArmGroup = new THREE.Group();
+    rightArmGroup.name = 'RightArm';
+
+    const sleeveR = new THREE.Mesh(sleeveGeo, GameMaterials.scoutShirtGreen);
+    sleeveR.position.set(0, -0.1, 0);
+    rightArmGroup.add(sleeveR);
+
+    const armUpperR = new THREE.Mesh(armUpperGeo, GameMaterials.skinScout);
+    armUpperR.position.set(0, -0.28, 0);
+    rightArmGroup.add(armUpperR);
+
+    const elbowR = new THREE.Mesh(elbowGeo, GameMaterials.bionicJointDark);
+    elbowR.position.set(0, -0.42, 0);
+    rightArmGroup.add(elbowR);
+
+    const forearmR = new THREE.Mesh(forearmGeo, GameMaterials.bionicMetalChrome);
+    forearmR.position.set(0, -0.58, 0);
+    rightArmGroup.add(forearmR);
+
+    // Clenched Mechanical Power Fist with metallic knuckle studs!
+    const fistGeo = new THREE.BoxGeometry(0.18, 0.16, 0.18);
+    const fistR = new THREE.Mesh(fistGeo, GameMaterials.bionicKnuckles);
+    fistR.position.set(0, -0.76, 0);
+    rightArmGroup.add(fistR);
+
+    // Knuckle studs
+    for (let k = -1; k <= 1; k++) {
+      const studGeo = new THREE.SphereGeometry(0.03, 6, 6);
+      const stud = new THREE.Mesh(studGeo, GameMaterials.bionicMetalChrome);
+      stud.position.set(k * 0.055, -0.82, 0.09);
+      rightArmGroup.add(stud);
+    }
+
+    rightArmGroup.position.set(0.46, 1.15, 0);
+    scout.add(rightArmGroup);
+
+    // -------------------------------------------------------------
+    // 4. SCOUT SHORTS, RIBBED SOCKS & HIKING BOOTS
+    // -------------------------------------------------------------
+    const createScoutLeg = (isLeft: boolean) => {
+      const legGroup = new THREE.Group();
+      legGroup.name = isLeft ? 'LeftLeg' : 'RightLeg';
+      const sign = isLeft ? -1 : 1;
+
+      // Olive Scout Shorts
+      const shortGeo = new THREE.CylinderGeometry(0.17, 0.18, 0.32, 10);
+      const shorts = new THREE.Mesh(shortGeo, GameMaterials.scoutShortsGreen);
+      shorts.position.set(0, 0.44, 0);
+      legGroup.add(shorts);
+
+      // Folded cuff rim
+      const cuffGeo = new THREE.TorusGeometry(0.18, 0.035, 8, 12);
+      cuffGeo.rotateX(Math.PI / 2);
+      const cuff = new THREE.Mesh(cuffGeo, GameMaterials.scoutShortsGreen);
+      cuff.position.set(0, 0.28, 0);
+      legGroup.add(cuff);
+
+      // Ribbed Green Knee-High Socks (from image!)
+      const sockGeo = new THREE.CylinderGeometry(0.11, 0.095, 0.34, 10);
+      const sock = new THREE.Mesh(sockGeo, GameMaterials.scoutSocks);
+      sock.position.set(0, 0.22, 0);
+      legGroup.add(sock);
+
+      // Brown Lace-Up Hiking Boots
+      const bootGroup = new THREE.Group();
+      bootGroup.position.set(0, 0.07, 0.05);
+
+      const toeGeo = new THREE.CapsuleGeometry(0.12, 0.2, 8, 8);
+      toeGeo.rotateX(Math.PI / 2);
+      const boot = new THREE.Mesh(toeGeo, GameMaterials.scoutBoots);
+      boot.castShadow = true;
+      bootGroup.add(boot);
+
+      const soleGeo = new THREE.BoxGeometry(0.24, 0.05, 0.38);
+      const sole = new THREE.Mesh(soleGeo, GameMaterials.cartoonShoeSole);
+      sole.position.y = -0.06;
+      bootGroup.add(sole);
+
+      // White laces
+      const laceGeo = new THREE.BoxGeometry(0.12, 0.02, 0.08);
+      const lace = new THREE.Mesh(laceGeo, new THREE.MeshBasicMaterial({ color: 0xffffff }));
+      lace.position.set(0, 0.08, 0.04);
+      bootGroup.add(lace);
+
+      legGroup.add(bootGroup);
+
+      legGroup.position.set(sign * 0.2, 0, 0);
+      return legGroup;
+    };
+
+    const leftLeg = createScoutLeg(true);
+    scout.add(leftLeg);
+
+    const rightLeg = createScoutLeg(false);
+    scout.add(rightLeg);
+
+    // Collector Leather Satchel on Hip
+    if (role === 'collector') {
+      const satchelGeo = new THREE.BoxGeometry(0.26, 0.24, 0.14);
+      const satchel = new THREE.Mesh(satchelGeo, GameMaterials.scoutBelt);
+      satchel.position.set(-0.35, 0.65, 0);
+      scout.add(satchel);
+
+      const strapGeo = new THREE.CylinderGeometry(0.03, 0.03, 0.9, 6);
+      strapGeo.rotateZ(Math.PI / 3.8);
+      const strap = new THREE.Mesh(strapGeo, GameMaterials.scoutBelt);
+      strap.position.set(0.05, 0.88, 0.05);
+      scout.add(strap);
+    }
+
+    return scout;
   }
 
   public static createBow(): THREE.Group {
@@ -302,12 +519,12 @@ export class ModelFactory {
       new THREE.Vector3(0.2, 0, 0.15),
       new THREE.Vector3(0, 0.65, 0)
     );
-    const bowGeo = new THREE.TubeGeometry(curve, 12, 0.04, 6, false);
-    const bowMesh = new THREE.Mesh(bowGeo, GameMaterials.castleWood);
+    const bowGeo = new THREE.TubeGeometry(curve, 12, 0.045, 6, false);
+    const bowMesh = new THREE.Mesh(bowGeo, GameMaterials.bionicMetalChrome);
     bow.add(bowMesh);
 
-    const stringGeo = new THREE.CylinderGeometry(0.01, 0.01, 1.3, 4);
-    const stringMat = new THREE.MeshBasicMaterial({ color: 0xeeeeee });
+    const stringGeo = new THREE.CylinderGeometry(0.012, 0.012, 1.3, 4);
+    const stringMat = new THREE.MeshBasicMaterial({ color: 0xffeb3b });
     const stringMesh = new THREE.Mesh(stringGeo, stringMat);
     stringMesh.position.set(0, 0, 0);
     bow.add(stringMesh);
@@ -358,14 +575,13 @@ export class ModelFactory {
 
   // =========================================================================
   // CARTOON BOBBLEHEAD ZOMBIE BUILDER (Tim Burton / PvZ Stylized 3D)
-  // Matching the user's provided samples exactly!
+  // (Bright, High-Visibility, Matching User's Samples 1, 2, 3)
   // =========================================================================
 
   public static createZombie(type: 'walker' | 'runner' | 'tank' | 'exploder' | 'siege' | 'boss'): THREE.Group {
     const zombie = new THREE.Group();
     zombie.name = `Zombie_${type}`;
 
-    // Select skin and clothing materials based on type & reference images
     let skinMat = GameMaterials.zombieSkinOlive;
     let shirtMat = GameMaterials.clothRedShirt;
     let pantsMat = GameMaterials.clothKhakiPants;
@@ -391,7 +607,7 @@ export class ModelFactory {
       pantsMat = GameMaterials.clothDarkPants;
       eyeLeftMat = GameMaterials.eyeMatYellow;
       eyeRightMat = GameMaterials.eyeMatYellow;
-      hasSpikyHair = false; // Bald bulbous head
+      hasSpikyHair = false;
       hasForeheadStitch = true;
     } else if (type === 'tank') {
       // Heavy Armored Cartoon Brute
@@ -438,12 +654,10 @@ export class ModelFactory {
     // -------------------------------------------------------------
     const headGroup = new THREE.Group();
     headGroup.name = 'HeadGroup';
-    // Position head on top of the small torso
     headGroup.position.set(0, 1.5, 0);
 
     // Bulbous Head Sphere (oversized ~45% of entire body height!)
     const headGeo = new THREE.SphereGeometry(0.72, 22, 18);
-    // Slightly squash and flare for cartoon chin/cheek shape
     headGeo.scale(1.08, 0.98, 0.95);
     const headMesh = new THREE.Mesh(headGeo, skinMat);
     headMesh.name = 'Head';
@@ -477,7 +691,6 @@ export class ModelFactory {
 
     const leftEye = new THREE.Mesh(eyeGeo, eyeLeftMat);
     leftEye.position.set(-0.31, 0.12, 0.52);
-    // Rotate eye so pupil faces forward
     leftEye.rotation.y = -Math.PI / 2;
     leftEye.castShadow = true;
     headGroup.add(leftEye);
@@ -503,7 +716,6 @@ export class ModelFactory {
     // Crooked Yellowish Rotten Teeth
     const toothGeo = new THREE.BoxGeometry(0.07, 0.1, 0.05);
 
-    // Bottom crooked teeth
     const toothB1 = new THREE.Mesh(toothGeo, GameMaterials.rottenTeeth);
     toothB1.position.set(-0.12, -0.28, 0.65);
     toothB1.rotation.z = -0.15;
@@ -519,7 +731,6 @@ export class ModelFactory {
     toothB3.rotation.z = -0.2;
     headGroup.add(toothB3);
 
-    // Top crooked teeth
     const toothT1 = new THREE.Mesh(toothGeo, GameMaterials.rottenTeeth);
     toothT1.position.set(-0.08, -0.23, 0.65);
     toothT1.rotation.z = 0.2;
@@ -532,14 +743,12 @@ export class ModelFactory {
 
     // Forehead Surgical Stitches / Scar (as in Reference 1 & 2)
     if (hasForeheadStitch) {
-      // Main dark scar seam
       const seamGeo = new THREE.BoxGeometry(0.35, 0.025, 0.04);
       const seam = new THREE.Mesh(seamGeo, GameMaterials.eyeSocketDark);
       seam.position.set(0.18, 0.52, 0.52);
       seam.rotation.z = 0.4;
       headGroup.add(seam);
 
-      // Cross stitches
       for (let s = -2; s <= 2; s++) {
         const stitchCross = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.12, 0.03), GameMaterials.stitchThread);
         stitchCross.position.set(0.18 + s * 0.06, 0.52 + s * 0.025, 0.53);
@@ -578,7 +787,6 @@ export class ModelFactory {
       helm.position.set(0, 0.55, 0);
       headGroup.add(helm);
 
-      // Horn spikes
       const hornGeo = new THREE.ConeGeometry(0.14, 0.55, 6);
       const leftHorn = new THREE.Mesh(hornGeo, GameMaterials.ironTrim);
       leftHorn.position.set(-0.6, 0.75, 0);
@@ -590,7 +798,6 @@ export class ModelFactory {
       rightHorn.rotation.z = -0.6;
       headGroup.add(rightHorn);
 
-      // Prominent bottom tusks
       const tuskGeo = new THREE.ConeGeometry(0.06, 0.25, 4);
       const tuskL = new THREE.Mesh(tuskGeo, GameMaterials.rottenTeeth);
       tuskL.position.set(-0.16, -0.22, 0.68);
@@ -616,13 +823,11 @@ export class ModelFactory {
     // -------------------------------------------------------------
     // 2. SPINDLY NECK & SMALL STYLIZED TORSO
     // -------------------------------------------------------------
-    // Skinny neck
     const neckGeo = new THREE.CylinderGeometry(0.12, 0.14, 0.3, 10);
     const neck = new THREE.Mesh(neckGeo, skinMat);
     neck.position.set(0, 1.15, 0);
     zombie.add(neck);
 
-    // Torso (tapered cartoon chest)
     const torsoGeo = new THREE.CylinderGeometry(0.38, 0.44, 0.72, 12);
     const torso = new THREE.Mesh(torsoGeo, shirtMat);
     torso.position.set(0, 0.75, 0);
@@ -630,7 +835,6 @@ export class ModelFactory {
     torso.castShadow = true;
     zombie.add(torso);
 
-    // Tattered jagged bottom hem fringe
     const fringeGeo = new THREE.ConeGeometry(0.08, 0.18, 4);
     for (let f = 0; f < 8; f++) {
       const angle = (f / 8) * Math.PI * 2;
@@ -642,7 +846,6 @@ export class ModelFactory {
 
     // Exploder Glowing Pustules
     if (type === 'exploder') {
-      // Swollen pear-shaped belly
       torso.scale.set(1.4, 1.1, 1.35);
 
       const pGeo = new THREE.SphereGeometry(0.16, 8, 8);
@@ -665,30 +868,25 @@ export class ModelFactory {
     const createArmWithHand = (isLeft: boolean) => {
       const armGroup = new THREE.Group();
       armGroup.name = isLeft ? 'LeftArm' : 'RightArm';
-
       const sign = isLeft ? -1 : 1;
 
-      // Arm sleeve & upper arm
       const armUpperGeo = new THREE.CylinderGeometry(0.08, 0.07, 0.45, 8);
       const armUpper = new THREE.Mesh(armUpperGeo, shirtMat);
       armUpper.position.set(0, -0.22, 0);
       armGroup.add(armUpper);
 
-      // Bare green forearm reaching forward in classic zombie pose
       const forearmGeo = new THREE.CylinderGeometry(0.065, 0.055, 0.45, 8);
       const forearm = new THREE.Mesh(forearmGeo, skinMat);
       forearm.position.set(0, -0.45, 0.22);
       forearm.rotation.x = Math.PI / 3;
       armGroup.add(forearm);
 
-      // Splayed Cartoon Zombie Hand (Large flat palm with 4 clawed fingers)
       const palmGeo = new THREE.BoxGeometry(0.16, 0.06, 0.16);
       const palm = new THREE.Mesh(palmGeo, skinMat);
       palm.position.set(0, -0.65, 0.42);
       palm.rotation.x = Math.PI / 4;
       armGroup.add(palm);
 
-      // 4 Spread-out cartoon fingers
       const fingerGeo = new THREE.CylinderGeometry(0.025, 0.02, 0.18, 6);
       for (let fin = -1.5; fin <= 1.5; fin += 1) {
         const finger = new THREE.Mesh(fingerGeo, skinMat);
@@ -716,30 +914,25 @@ export class ModelFactory {
       legGroup.name = isLeft ? 'LeftLeg' : 'RightLeg';
       const sign = isLeft ? -1 : 1;
 
-      // Shorts / Pants upper leg
       const pantGeo = new THREE.CylinderGeometry(0.18, 0.16, 0.38, 8);
       const pantMesh = new THREE.Mesh(pantGeo, pantsMat);
       pantMesh.position.set(0, 0.35, 0);
       legGroup.add(pantMesh);
 
-      // Skinny green zombie shin
       const shinGeo = new THREE.CylinderGeometry(0.06, 0.05, 0.3, 8);
       const shinMesh = new THREE.Mesh(shinGeo, skinMat);
       shinMesh.position.set(0, 0.15, 0);
       legGroup.add(shinMesh);
 
-      // Chunky Rounded Cartoon Sneaker / Boot
       const shoeGroup = new THREE.Group();
       shoeGroup.position.set(0, 0.06, 0.06);
 
-      // Rounded toe box
       const toeGeo = new THREE.CapsuleGeometry(0.14, 0.22, 8, 8);
       toeGeo.rotateX(Math.PI / 2);
       const toeMesh = new THREE.Mesh(toeGeo, GameMaterials.cartoonShoe);
       toeMesh.castShadow = true;
       shoeGroup.add(toeMesh);
 
-      // Thick dark sole trim
       const soleGeo = new THREE.BoxGeometry(0.28, 0.05, 0.44);
       const soleMesh = new THREE.Mesh(soleGeo, GameMaterials.cartoonShoeSole);
       soleMesh.position.y = -0.06;
@@ -761,7 +954,6 @@ export class ModelFactory {
     // 5. WEAPONS / SPECIAL ACCESSORIES
     // -------------------------------------------------------------
     if (type === 'siege') {
-      // Strapped catapult arm on back
       const beamGeo = new THREE.BoxGeometry(0.14, 1.4, 0.14);
       const beam = new THREE.Mesh(beamGeo, GameMaterials.castleWood);
       beam.position.set(0.3, 1.3, -0.45);
@@ -776,7 +968,6 @@ export class ModelFactory {
     }
 
     if (type === 'boss') {
-      // Giant spiked battleaxe in right hand
       const axeGroup = new THREE.Group();
       const poleGeo = new THREE.CylinderGeometry(0.08, 0.08, 2.6, 8);
       const pole = new THREE.Mesh(poleGeo, GameMaterials.castleWood);
@@ -792,7 +983,6 @@ export class ModelFactory {
       zombie.add(axeGroup);
     }
 
-    // Overall type scale
     if (scale !== 1.0) {
       zombie.scale.set(scale, scale, scale);
     }

@@ -25,10 +25,10 @@ export class Citizen3D {
   public isRetreating: boolean = false;
 
   // Animation references
-  private leftArm?: THREE.Mesh;
-  private rightArm?: THREE.Mesh;
-  private leftLeg?: THREE.Mesh;
-  private rightLeg?: THREE.Mesh;
+  private leftArm?: THREE.Object3D;
+  private rightArm?: THREE.Object3D;
+  private leftLeg?: THREE.Object3D;
+  private rightLeg?: THREE.Object3D;
   private animTime: number = 0;
 
   constructor(scene: THREE.Scene, data: CitizenData, slotIndex: number) {
@@ -76,10 +76,10 @@ export class Citizen3D {
       this.homePos = this.mesh.position.clone();
     }
 
-    this.leftArm = this.mesh.getObjectByName('LeftArm') as THREE.Mesh;
-    this.rightArm = this.mesh.getObjectByName('RightArm') as THREE.Mesh;
-    this.leftLeg = this.mesh.getObjectByName('LeftLeg') as THREE.Mesh;
-    this.rightLeg = this.mesh.getObjectByName('RightLeg') as THREE.Mesh;
+    this.leftArm = this.mesh.getObjectByName('LeftArm');
+    this.rightArm = this.mesh.getObjectByName('RightArm');
+    this.leftLeg = this.mesh.getObjectByName('LeftLeg');
+    this.rightLeg = this.mesh.getObjectByName('RightLeg');
 
     scene.add(this.mesh);
   }

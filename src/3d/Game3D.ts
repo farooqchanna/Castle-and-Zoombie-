@@ -102,13 +102,13 @@ export class Game3D {
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.15;
+    this.renderer.toneMappingExposure = 1.35;
     this.container.appendChild(this.renderer.domElement);
 
-    // Scene & Fog
+    // Scene & Fog (Bright, crisp stylized studio environment)
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x0a101f);
-    this.scene.fog = new THREE.FogExp2(0x0a101f, 0.016);
+    this.scene.background = new THREE.Color(0x42586b); // High-contrast stylized studio backdrop
+    this.scene.fog = new THREE.Fog(0x42586b, 65, 170); // Gentle distant falloff (characters remain 100% visible)
 
     // Camera
     this.camera = new THREE.PerspectiveCamera(
@@ -152,59 +152,43 @@ export class Game3D {
   }
 
   private setupEnvironment(): void {
-    // Atmospheric Hemispheric Light
-    const hemiLight = new THREE.HemisphereLight(0x283593, 0x1b281e, 0.85);
+    // Bright Stylized Ambient & Hemispheric Light (Eliminates murky black shadows!)
+    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x546e7a, 1.9);
     this.scene.add(hemiLight);
 
-    // Directional Moonlight with Soft Shadows
-    const moonLight = new THREE.DirectionalLight(0xb0bec5, 1.3);
-    moonLight.position.set(22, 36, 18);
-    moonLight.castShadow = true;
-    moonLight.shadow.mapSize.width = 2048;
-    moonLight.shadow.mapSize.height = 2048;
-    moonLight.shadow.camera.near = 0.5;
-    moonLight.shadow.camera.far = 120;
+    // Primary Sunlight / Key Light (Crisp, warm cartoon directional light)
+    const keyLight = new THREE.DirectionalLight(0xfffaea, 2.3);
+    keyLight.position.set(18, 32, 22);
+    keyLight.castShadow = true;
+    keyLight.shadow.mapSize.width = 2048;
+    keyLight.shadow.mapSize.height = 2048;
+    keyLight.shadow.camera.near = 0.5;
+    keyLight.shadow.camera.far = 120;
     const shadowD = 35;
-    moonLight.shadow.camera.left = -shadowD;
-    moonLight.shadow.camera.right = shadowD;
-    moonLight.shadow.camera.top = shadowD;
-    moonLight.shadow.camera.bottom = -shadowD;
-    moonLight.shadow.bias = -0.0005;
-    this.scene.add(moonLight);
+    keyLight.shadow.camera.left = -shadowD;
+    keyLight.shadow.camera.right = shadowD;
+    keyLight.shadow.camera.top = shadowD;
+    keyLight.shadow.camera.bottom = -shadowD;
+    keyLight.shadow.bias = -0.0004;
+    this.scene.add(keyLight);
 
-    // 3D Battleground Terrain
+    // Front Camera Fill Light (Ensures front-facing faces, eyes, and clothes are 100% visible and bright!)
+    const frontFillLight = new THREE.DirectionalLight(0xe1f5fe, 1.4);
+    frontFillLight.position.set(0, 15, -20);
+    this.scene.add(frontFillLight);
+
+    // Rim / Edge Light (Creates crisp cartoon outlines along the silhouette of zombies and heroes)
+    const rimLight = new THREE.DirectionalLight(0xffea00, 1.0);
+    rimLight.position.set(0, 20, 60);
+    this.scene.add(rimLight);
+
+    // 3D Battleground Terrain (Vibrant, high-contrast grass and cobblestone)
     const groundGeo = new THREE.PlaneGeometry(60, 95, 32, 32);
     groundGeo.rotateX(-Math.PI / 2);
     const groundMesh = new THREE.Mesh(groundGeo, GameMaterials.ground);
     groundMesh.position.set(0, 0, 24);
     groundMesh.receiveShadow = true;
     this.scene.add(groundMesh);
-
-    // Glowing 3D Moon in Sky
-    const moonGeo = new THREE.SphereGeometry(4.5, 16, 16);
-    const moonMat = new THREE.MeshBasicMaterial({ color: 0xfffde7 });
-    const moon = new THREE.Mesh(moonGeo, moonMat);
-    moon.position.set(45, 65, 80);
-    this.scene.add(moon);
-
-    // Starfield
-    const starCount = 800;
-    const starGeo = new THREE.BufferGeometry();
-    const starPositions = new Float32Array(starCount * 3);
-    for (let i = 0; i < starCount * 3; i += 3) {
-      starPositions[i] = (Math.random() - 0.5) * 220;
-      starPositions[i + 1] = Math.random() * 80 + 20;
-      starPositions[i + 2] = (Math.random() - 0.5) * 220;
-    }
-    starGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
-    const starMat = new THREE.PointsMaterial({
-      color: 0xffffff,
-      size: 0.9,
-      transparent: true,
-      opacity: 0.8,
-    });
-    const starField = new THREE.Points(starGeo, starMat);
-    this.scene.add(starField);
 
     // Wooden Spike Barricades on Battlefield
     for (let i = -10; i <= 10; i += 4.5) {
