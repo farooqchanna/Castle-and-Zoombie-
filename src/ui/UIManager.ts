@@ -524,6 +524,11 @@ export class UIManager {
           <span class="skill-key" id="key-auto-aim">[A] ON</span>
         </button>
 
+        <button class="skill-btn" id="btn-vantage-spot">
+          <span>🏰 Vantage</span>
+          <span class="skill-key" id="key-vantage">[Q/E] Center</span>
+        </button>
+
         <button class="skill-btn" id="btn-camera-view">
           <span>🎥 View</span>
           <span class="skill-key" id="key-camera">[C] Tactical</span>
@@ -540,7 +545,7 @@ export class UIManager {
       </div>
 
       <div class="bottom-controls-hint">
-        Click to Shoot • Hit Heads for Critical Damage • Press [P] Pause • Press [C] Marksman View • Press [1] Horn • Press [2] Oil
+        [A] / [D] Move Archer • [Q] / [E] Switch Towers • Click to Shoot • [C] Marksman View • [P] Pause
       </div>
     `;
     this.root.appendChild(this.hudElement);
@@ -558,6 +563,11 @@ export class UIManager {
       const state = this.game.toggleAutoAim();
       const el = document.getElementById('key-auto-aim');
       if (el) el.textContent = `[A] ${state ? 'ON' : 'OFF'}`;
+    });
+
+    this.hudElement.querySelector('#btn-vantage-spot')?.addEventListener('click', () => {
+      this.game.nextVantageSpot();
+      this.updateHud();
     });
 
     this.hudElement.querySelector('#btn-camera-view')?.addEventListener('click', () => {
@@ -746,6 +756,16 @@ export class UIManager {
               <button class="btn-upgrade" id="btn-hire-soldier" style="flex:1;">Recruit Defender (25g)</button>
               <button class="btn-upgrade" id="btn-hire-collector" style="flex:1; background:linear-gradient(135deg, #e65100, #ff9800);">Recruit Collector (20g)</button>
             </div>
+
+            <div class="upgrade-row" style="margin-top: 12px; background: rgba(25, 118, 210, 0.2); border: 1px solid rgba(33, 150, 243, 0.4);">
+              <div>
+                <div class="upgrade-info-title">Expand Barracks Quarters</div>
+                <div class="upgrade-info-sub" id="prep-quarters-sub">+2 Citizen Capacity Slots</div>
+              </div>
+              <button class="btn-upgrade" id="btn-expand-quarters" style="background: linear-gradient(135deg, #1976d2, #2196f3); color: #fff;">
+                Expand (30g)
+              </button>
+            </div>
           </div>
         </div>
 
@@ -813,6 +833,21 @@ export class UIManager {
       }
     });
 
+    this.prepScreenElement.querySelector('#btn-expand-quarters')?.addEventListener('click', () => {
+      const currentMax = CitizenManager.getInstance().maxCitizens;
+      const cost = 30 + (currentMax - 4) * 12;
+      if (EconomyManager.getInstance().spendCoins(cost)) {
+        CitizenManager.getInstance().upgradeMaxCapacity(2);
+        SoundEffects.getInstance().playCoinPickup();
+        SaveManager.getInstance().saveGame({
+          maxCitizens: CitizenManager.getInstance().maxCitizens,
+          coins: EconomyManager.getInstance().getCoins(),
+        });
+        this.updatePrepScreen();
+        this.updateHud();
+      }
+    });
+
     this.prepScreenElement.querySelector('#btn-prep-start-wave')?.addEventListener('click', () => {
       this.prepScreenElement.classList.remove('active');
       this.game.startWave(this.game.currentWave + 1);
@@ -866,6 +901,12 @@ export class UIManager {
     if (waveStatus) {
       const remaining = Math.max(0, this.game.totalWaveZombies - this.game.zombiesKilled);
       waveStatus.textContent = `${remaining} undead remaining`;
+    }
+
+    const vantageKey = document.getElementById('key-vantage');
+    if (vantageKey) {
+      const spot = Game3D.VANTAGE_SPOTS[this.game.currentVantageIndex];
+      vantageKey.textContent = `[Q/E] ${spot.name}`;
     }
   }
 
@@ -970,9 +1011,17 @@ export class UIManager {
     // Citizen List
     const citCount = document.getElementById('prep-cit-count');
     const roster = CitizenManager.getInstance().getCitizens();
+    const currentMax = CitizenManager.getInstance().maxCitizens;
     if (citCount) {
-      citCount.textContent = `${roster.length} / ${CitizenManager.getInstance().maxCitizens} Citizens`;
+      citCount.textContent = `${roster.length} / ${currentMax} Citizens`;
     }
+
+    const quartersCost = 30 + (currentMax - 4) * 12;
+    const expandBtn = document.getElementById('btn-expand-quarters');
+    if (expandBtn) expandBtn.textContent = `Expand (${quartersCost}g)`;
+
+    const quartersSub = document.getElementById('prep-quarters-sub');
+    if (quartersSub) quartersSub.textContent = `Current Cap: ${currentMax} • +2 Slots for ${quartersCost}g`;
 
     const citList = document.getElementById('prep-cit-list');
     if (citList) {

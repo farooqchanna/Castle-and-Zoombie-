@@ -37,11 +37,27 @@ export class Citizen3D {
 
     if (this.role === 'soldier') {
       this.mesh = ModelFactory.createDefender(data.rank);
-      // Position along castle rampart
-      const spacing = 2.4;
-      const startX = -7.2;
-      const x = startX + slotIndex * spacing;
-      this.mesh.position.set(x, 6.4, -5.8);
+
+      // Predefined tactical stations across ramparts and watchtowers
+      const DEFENDER_SLOTS = [
+        { x: -4.5, y: 6.4, z: -5.8 },
+        { x: 4.5, y: 6.4, z: -5.8 },
+        { x: -8.5, y: 6.4, z: -5.8 },
+        { x: 8.5, y: 6.4, z: -5.8 },
+        { x: -13.5, y: 8.5, z: -5.8 }, // Left elevated tower
+        { x: 13.5, y: 8.5, z: -5.8 },  // Right elevated tower
+        { x: -2.2, y: 6.4, z: -5.8 },
+        { x: 2.2, y: 6.4, z: -5.8 },
+        { x: -10.5, y: 6.4, z: -5.8 },
+        { x: 10.5, y: 6.4, z: -5.8 },
+        { x: -6.5, y: 6.4, z: -5.8 },
+        { x: 6.5, y: 6.4, z: -5.8 },
+        { x: -12.5, y: 8.5, z: -5.8 },
+        { x: 12.5, y: 8.5, z: -5.8 },
+      ];
+
+      const slot = DEFENDER_SLOTS[slotIndex % DEFENDER_SLOTS.length];
+      this.mesh.position.set(slot.x, slot.y, slot.z);
       this.homePos = this.mesh.position.clone();
 
       // Configure rank stats
@@ -71,8 +87,18 @@ export class Citizen3D {
     } else {
       // Collector
       this.mesh = ModelFactory.createCollector();
-      const x = -1.5 + slotIndex * 1.5;
-      this.mesh.position.set(x, 0, -4.0);
+      const COLLECTOR_SLOTS = [
+        { x: -1.8, y: 0, z: -4.0 },
+        { x: 1.8, y: 0, z: -4.0 },
+        { x: -3.2, y: 0, z: -4.0 },
+        { x: 3.2, y: 0, z: -4.0 },
+        { x: -0.9, y: 0, z: -3.8 },
+        { x: 0.9, y: 0, z: -3.8 },
+        { x: -4.5, y: 0, z: -4.0 },
+        { x: 4.5, y: 0, z: -4.0 },
+      ];
+      const slot = COLLECTOR_SLOTS[slotIndex % COLLECTOR_SLOTS.length];
+      this.mesh.position.set(slot.x, slot.y, slot.z);
       this.homePos = this.mesh.position.clone();
     }
 

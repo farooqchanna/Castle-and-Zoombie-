@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { GameMaterials } from './Materials';
+import { ModelFactory } from './Models';
 import { Castle3D } from './Castle3D';
 import { Arrow3D } from './Arrow3D';
 import { Zombie3D, ZombieType } from './Zombie3D';
@@ -77,6 +78,19 @@ export class Game3D {
   private hoveredTarget: Zombie3D | null = null;
   private aimReticle!: THREE.Mesh;
 
+  // Player Archer on Wall & Vantage Positions
+  public playerArcher!: THREE.Group;
+  public playerX: number = 0;
+  public playerTargetX: number = 0;
+  public currentVantageIndex: number = 2; // Center Gatehouse
+  public static readonly VANTAGE_SPOTS = [
+    { id: 'left_tower', name: 'Left Tower (Sniper)', x: -13.2, y: 8.5 },
+    { id: 'left_wall', name: 'Left Rampart', x: -6.5, y: 6.4 },
+    { id: 'center', name: 'Center Gatehouse', x: 0.0, y: 6.4 },
+    { id: 'right_wall', name: 'Right Rampart', x: 6.5, y: 6.4 },
+    { id: 'right_tower', name: 'Right Tower (Sniper)', x: 13.2, y: 8.5 },
+  ];
+
   // Screen Shake
   private screenShakeIntensity: number = 0;
 
@@ -143,6 +157,11 @@ export class Game3D {
     this.aimReticle = new THREE.Mesh(reticleGeo, reticleMat);
     this.aimReticle.position.set(0, 0.08, 10);
     this.scene.add(this.aimReticle);
+
+    // Spawn Player Scout Archer Hero on the Ramparts!
+    this.playerArcher = ModelFactory.createScoutCharacter('soldier', 'archer');
+    this.playerArcher.position.set(0, 6.4, -5.8);
+    this.scene.add(this.playerArcher);
 
     // Load Save or Defaults
     this.loadInitialState();
@@ -270,10 +289,51 @@ export class Game3D {
       this.targetCameraPos.set(0, 17, -17);
       this.targetCameraLook.set(0, 2, 13);
     } else {
-      // Rampart Marksman View
-      this.targetCameraPos.set(0, 8.4, -6.2);
-      this.targetCameraLook.set(0, 2.5, 22);
+      // Rampart Marksman View: tracks player archer position!
+      const playerY = Math.abs(this.playerX) > 11.8 ? 8.5 : 6.4;
+      this.targetCameraPos.set(this.playerX, playerY + 1.8, -6.0);
+      this.targetCameraLook.set(this.playerX, 2.5, 24);
     }
+  }
+
+  public setVantageSpot(index: number): void {
+    this.currentVantageIndex = Math.max(0, Math.min(Game3D.VANTAGE_SPOTS.length - 1, index));
+    const spot = Game3D.VANTAGE_SPOTS[this.currentVantageIndex];
+    this.playerTargetX = spot.x;
+    SoundEffects.getInstance().playArrowShoot();
+    if (this.onStateChange) this.onStateChange();
+  }
+
+  public prevVantageSpot(): void {
+    this.setVantageSpot(this.currentVantageIndex - 1);
+  }
+
+  public nextVantageSpot(): void {
+    this.setVantageSpot(this.currentVantageIndex + 1);
+  }
+
+  public movePlayerLeft(): void {
+    this.playerTargetX = Math.max(-13.2, this.playerTargetX - 2.8);
+    this.updateClosestVantageIndex();
+  }
+
+  public movePlayerRight(): void {
+    this.playerTargetX = Math.min(13.2, this.playerTargetX + 2.8);
+    this.updateClosestVantageIndex();
+  }
+
+  private updateClosestVantageIndex(): void {
+    let closestDist = 999;
+    let closestIdx = 2;
+    Game3D.VANTAGE_SPOTS.forEach((spot, idx) => {
+      const d = Math.abs(spot.x - this.playerTargetX);
+      if (d < closestDist) {
+        closestDist = d;
+        closestIdx = idx;
+      }
+    });
+    this.currentVantageIndex = closestIdx;
+    if (this.onStateChange) this.onStateChange();
   }
 
   public toggleCameraMode(): void {
@@ -414,13 +474,21 @@ export class Game3D {
         this.togglePause();
       } else if (this.isPaused) {
         return; // Suppress combat inputs while paused
+      } else if (e.code === 'KeyA' || e.code === 'ArrowLeft') {
+        this.movePlayerLeft();
+      } else if (e.code === 'KeyD' || e.code === 'ArrowRight') {
+        this.movePlayerRight();
+      } else if (e.code === 'KeyQ') {
+        this.prevVantageSpot();
+      } else if (e.code === 'KeyE') {
+        this.nextVantageSpot();
       } else if (e.code === 'KeyC') {
         this.toggleCameraMode();
       } else if (e.code === 'KeyH' || e.code === 'Digit1') {
         this.triggerWarHorn();
       } else if (e.code === 'KeyO' || e.code === 'Space' || e.code === 'Digit2') {
         this.triggerBoilingOil();
-      } else if (e.code === 'KeyA') {
+      } else if (e.code === 'KeyT') {
         this.toggleAutoAim();
       }
     });
@@ -472,8 +540,8 @@ export class Game3D {
     if (now - this.lastPlayerShotTime < this.playerFireRate) return;
     this.lastPlayerShotTime = now;
 
-    // Launch position from player bow on center battlements
-    const bowPos = new THREE.Vector3(0, 7.4, -5.0);
+    // Launch position from current player archer vantage spot!
+    const bowPos = this.playerArcher.position.clone().add(new THREE.Vector3(0, 0.9, 0.5));
 
     // Target point
     let targetPoint = this.aimGroundPoint.clone();
@@ -547,6 +615,21 @@ export class Game3D {
     this.camera.position.lerp(this.targetCameraPos, dt * 4.5);
     this.currentCameraLook.lerp(this.targetCameraLook, dt * 4.5);
     this.camera.lookAt(this.currentCameraLook);
+
+    // Smooth player archer position lerp along castle ramparts & towers
+    this.playerX = THREE.MathUtils.lerp(this.playerX, this.playerTargetX, dt * 10);
+    const playerY = Math.abs(this.playerX) > 11.8 ? 8.5 : 6.4;
+    this.playerArcher.position.set(this.playerX, playerY, -5.8);
+
+    // Player archer aims toward mouse cursor
+    const toAim = this.aimGroundPoint.clone().sub(this.playerArcher.position);
+    this.playerArcher.rotation.y = Math.atan2(toAim.x, toAim.z);
+
+    // In Marksman View, camera follows player archer across the wall
+    if (this.cameraMode === 'marksman') {
+      this.targetCameraPos.set(this.playerX, playerY + 1.8, -6.0);
+      this.targetCameraLook.set(this.playerX + (this.mouse.x * 6), 2.5, 24);
+    }
 
     // Apply Screen Shake
     if (this.screenShakeIntensity > 0) {
