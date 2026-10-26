@@ -80,6 +80,10 @@ export class Game3D {
   // Screen Shake
   private screenShakeIntensity: number = 0;
 
+  // Pause state
+  public isPaused: boolean = false;
+  public onPauseChange?: (isPaused: boolean) => void;
+
   // Callbacks for UI
   public onWaveComplete?: () => void;
   public onGameOver?: () => void;
@@ -281,6 +285,17 @@ export class Game3D {
     return this.isAutoAimEnabled;
   }
 
+  public togglePause(): boolean {
+    this.isPaused = !this.isPaused;
+    if (this.onPauseChange) this.onPauseChange(this.isPaused);
+    return this.isPaused;
+  }
+
+  public setPaused(paused: boolean): void {
+    this.isPaused = paused;
+    if (this.onPauseChange) this.onPauseChange(this.isPaused);
+  }
+
   public triggerWarHorn(): boolean {
     const now = performance.now() / 1000;
     if (now - this.lastHornUse < this.hornCooldown) return false;
@@ -395,7 +410,11 @@ export class Game3D {
 
     // Keyboard Shortcuts
     window.addEventListener('keydown', (e: KeyboardEvent) => {
-      if (e.code === 'KeyC') {
+      if (e.code === 'KeyP' || e.code === 'Escape') {
+        this.togglePause();
+      } else if (this.isPaused) {
+        return; // Suppress combat inputs while paused
+      } else if (e.code === 'KeyC') {
         this.toggleCameraMode();
       } else if (e.code === 'KeyH' || e.code === 'Digit1') {
         this.triggerWarHorn();
@@ -447,7 +466,7 @@ export class Game3D {
   }
 
   public handlePlayerShoot(): void {
-    if (!this.isWaveActive || this.isGameOver || this.isWaveVictory) return;
+    if (this.isPaused || !this.isWaveActive || this.isGameOver || this.isWaveVictory) return;
 
     const now = performance.now();
     if (now - this.lastPlayerShotTime < this.playerFireRate) return;
@@ -515,7 +534,9 @@ export class Game3D {
     const dt = Math.min(0.1, (now - this.lastFrameTime) / 1000);
     this.lastFrameTime = now;
 
-    this.update(dt, now);
+    if (!this.isPaused) {
+      this.update(dt, now);
+    }
     this.render();
   }
 

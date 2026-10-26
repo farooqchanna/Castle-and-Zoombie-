@@ -39,6 +39,10 @@ export class Zombie3D {
     this.mesh = ModelFactory.createZombie(type);
     this.mesh.position.set(spawnX, 0, spawnZ);
 
+    // Orient zombie to face forward directly toward the castle gate!
+    const toGate = new THREE.Vector3(0, 0, -4.0).sub(this.mesh.position);
+    this.mesh.rotation.y = Math.atan2(toGate.x, toGate.z);
+
     // Cache limb references
     this.leftLeg = this.mesh.getObjectByName('LeftLeg');
     this.rightLeg = this.mesh.getObjectByName('RightLeg');
@@ -206,6 +210,10 @@ export class Zombie3D {
       const dx = 0 - this.mesh.position.x;
       this.mesh.position.x += Math.sign(dx) * Math.min(Math.abs(dx), dt * 0.8);
 
+      // Keep facing directly towards the castle gate as they walk!
+      const toGate = new THREE.Vector3(0, 0, -4.0).sub(this.mesh.position);
+      this.mesh.rotation.y = Math.atan2(toGate.x, toGate.z);
+
       // Cartoon Waddle Walk cycle animation
       const legAngle = Math.sin(this.animTime) * 0.7;
       if (this.leftLeg) this.leftLeg.rotation.x = legAngle;
@@ -219,6 +227,7 @@ export class Zombie3D {
       // Reached gate!
       this.isAtGate = true;
       this.mesh.position.z = gateTargetZ;
+      this.mesh.rotation.y = Math.PI; // Face directly flush against the gate door!
 
       // Attack bash animation
       const attackAnim = Math.sin(now * 0.009) * 0.45;

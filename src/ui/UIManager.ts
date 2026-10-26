@@ -13,6 +13,7 @@ export class UIManager {
 
   // UI Layers
   private hudElement!: HTMLElement;
+  private pauseModalElement!: HTMLElement;
   private perkModalElement!: HTMLElement;
   private prepScreenElement!: HTMLElement;
   private gameOverElement!: HTMLElement;
@@ -29,6 +30,7 @@ export class UIManager {
     this.injectStyles();
     this.createHud();
     this.createCrosshair();
+    this.createPauseModal();
     this.createPerkModal();
     this.createPrepScreen();
     this.createGameOverScreen();
@@ -37,6 +39,7 @@ export class UIManager {
     this.game.onWaveComplete = () => this.handleWaveVictory();
     this.game.onGameOver = () => this.handleGameOver();
     this.game.onStateChange = () => this.updateHud();
+    this.game.onPauseChange = (paused: boolean) => this.handlePauseChange(paused);
 
     // Hook Economy listener
     EconomyManager.getInstance().on('coins-changed', () => this.updateHud());
@@ -526,13 +529,18 @@ export class UIManager {
           <span class="skill-key" id="key-camera">[C] Tactical</span>
         </button>
 
+        <button class="skill-btn" id="btn-pause-game">
+          <span>⏸️ Pause</span>
+          <span class="skill-key">[P] / [Esc]</span>
+        </button>
+
         <button class="skill-btn" id="btn-audio-mute">
           <span id="audio-icon">🔊 Sound</span>
         </button>
       </div>
 
       <div class="bottom-controls-hint">
-        Click to Shoot • Hit Heads for Critical Damage • Press [C] for Marksman View • Press [1] Horn • Press [2] Oil
+        Click to Shoot • Hit Heads for Critical Damage • Press [P] Pause • Press [C] Marksman View • Press [1] Horn • Press [2] Oil
       </div>
     `;
     this.root.appendChild(this.hudElement);
@@ -557,20 +565,98 @@ export class UIManager {
       this.updateCameraUi();
     });
 
-    this.hudElement.querySelector('#btn-audio-mute')?.addEventListener('click', () => {
-      const isMuted = SoundEffects.getInstance().toggleMute();
+      this.hudElement.querySelector('#btn-pause-game')?.addEventListener('click', () => {
+        this.game.togglePause();
+      });
+
+      this.hudElement.querySelector('#btn-audio-mute')?.addEventListener('click', () => {
+        const isMuted = SoundEffects.getInstance().toggleMute();
+        this.updateAudioUi(isMuted);
+      });
+    }
+
+    private updateAudioUi(isMuted: boolean): void {
       const el = document.getElementById('audio-icon');
       if (el) el.textContent = isMuted ? '🔇 Muted' : '🔊 Sound';
-    });
-  }
 
-  private updateCameraUi(): void {
-    const el = document.getElementById('key-camera');
-    if (el) {
-      el.textContent = this.game.cameraMode === 'tactical' ? '[C] Tactical' : '[C] Marksman';
+      const pauseSoundBtn = document.getElementById('btn-pause-sound');
+      if (pauseSoundBtn) pauseSoundBtn.textContent = isMuted ? '🔇 Sound: Muted' : '🔊 Sound: ON';
     }
-    this.crosshairElement.style.display = this.game.cameraMode === 'marksman' ? 'block' : 'none';
-  }
+
+    private updateCameraUi(): void {
+      const el = document.getElementById('key-camera');
+      if (el) {
+        el.textContent = this.game.cameraMode === 'tactical' ? '[C] Tactical' : '[C] Marksman';
+      }
+      const pauseCameraBtn = document.getElementById('btn-pause-view');
+      if (pauseCameraBtn) {
+        pauseCameraBtn.textContent = this.game.cameraMode === 'tactical' ? '🎥 View: Tactical 3D' : '🎥 View: Marksman FPS';
+      }
+      this.crosshairElement.style.display = this.game.cameraMode === 'marksman' ? 'block' : 'none';
+    }
+
+    private createPauseModal(): void {
+      this.pauseModalElement = document.createElement('div');
+      this.pauseModalElement.className = 'modal-backdrop';
+      this.pauseModalElement.innerHTML = `
+        <div class="modal-box" style="max-width: 440px;">
+          <h1 style="color: #ffd54f; font-size: 30px; font-weight: 900; margin-bottom: 6px;">
+            ⏸️ GAME PAUSED
+          </h1>
+          <p style="color: #cfd8dc; font-size: 14px; margin-bottom: 24px;" id="pause-modal-subtitle">
+            Battle temporarily suspended
+          </p>
+
+          <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 12px;">
+            <button class="btn-start-wave" id="btn-pause-resume" style="font-size: 17px; padding: 12px 24px;">
+              ▶️ RESUME BATTLE
+            </button>
+            <button class="btn-upgrade" id="btn-pause-sound" style="padding: 10px; font-size: 14px; font-weight: 700;">
+              🔊 Sound: ON
+            </button>
+            <button class="btn-upgrade" id="btn-pause-view" style="padding: 10px; font-size: 14px; font-weight: 700;">
+              🎥 View: Tactical 3D
+            </button>
+            <button class="btn-upgrade" id="btn-restart-wave" style="padding: 10px; font-size: 14px; font-weight: 700; background: linear-gradient(135deg, #c62828, #e53935); color: #fff;">
+              🔄 Restart Current Wave
+            </button>
+          </div>
+        </div>
+      `;
+      this.root.appendChild(this.pauseModalElement);
+
+      this.pauseModalElement.querySelector('#btn-pause-resume')?.addEventListener('click', () => {
+        this.game.setPaused(false);
+      });
+
+      this.pauseModalElement.querySelector('#btn-pause-sound')?.addEventListener('click', () => {
+        const isMuted = SoundEffects.getInstance().toggleMute();
+        this.updateAudioUi(isMuted);
+      });
+
+      this.pauseModalElement.querySelector('#btn-pause-view')?.addEventListener('click', () => {
+        this.game.toggleCameraMode();
+        this.updateCameraUi();
+      });
+
+      this.pauseModalElement.querySelector('#btn-restart-wave')?.addEventListener('click', () => {
+        this.game.setPaused(false);
+        this.pauseModalElement.classList.remove('active');
+        this.game.startWave(this.game.currentWave);
+      });
+    }
+
+    private handlePauseChange(paused: boolean): void {
+      if (paused) {
+        const sub = document.getElementById('pause-modal-subtitle');
+        if (sub) {
+          sub.textContent = `Wave ${this.game.currentWave} in progress • ${Math.round(this.game.castle.currentHp)} / ${this.game.castle.maxHp} Gate Integrity`;
+        }
+        this.pauseModalElement.classList.add('active');
+      } else {
+        this.pauseModalElement.classList.remove('active');
+      }
+    }
 
   private createPerkModal(): void {
     this.perkModalElement = document.createElement('div');
