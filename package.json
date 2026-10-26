@@ -14,5 +14,9 @@
   "devDependencies": {
     "typescript": "^5.7.2",
     "vite": "^6.0.1"
+  },
+  "optionalDependencies": {
+    "@esbuild/linux-x64": "^0.25.12",
+    "@rollup/rollup-linux-x64-gnu": "^4.65.1"
   }
 }
