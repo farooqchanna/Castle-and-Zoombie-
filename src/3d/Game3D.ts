@@ -1,4 +1,12 @@
 import * as THREE from 'three';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
+import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
+import { VerticalTiltShiftShader } from 'three/examples/jsm/shaders/VerticalTiltShiftShader.js';
+import { VignetteShader } from 'three/examples/jsm/shaders/VignetteShader.js';
+
 import { GameMaterials } from './Materials';
 import { ModelFactory } from './Models';
 import { Castle3D } from './Castle3D';
@@ -21,6 +29,9 @@ export class Game3D {
   public scene: THREE.Scene;
   public camera: THREE.PerspectiveCamera;
   public renderer: THREE.WebGLRenderer;
+  public composer: EffectComposer;
+  private tiltShiftPass!: ShaderPass;
+  public isPostProcessingEnabled: boolean = true;
 
   // Camera Management
   public cameraMode: CameraMode = 'tactical';
@@ -162,6 +173,35 @@ export class Game3D {
     this.playerArcher = ModelFactory.createScoutCharacter('soldier', 'archer');
     this.playerArcher.position.set(0, 6.4, -5.8);
     this.scene.add(this.playerArcher);
+
+    // Initialize Post-Processing EffectComposer for Miniature Tilt-Shift Realism
+    this.composer = new EffectComposer(this.renderer);
+    const renderPass = new RenderPass(this.scene, this.camera);
+    this.composer.addPass(renderPass);
+
+    // Subtle bloom for torch flames, lanterns, and river sun specular highlights
+    const bloomPass = new UnrealBloomPass(
+      new THREE.Vector2(window.innerWidth, window.innerHeight),
+      0.32,  // subtle strength
+      0.4,   // radius
+      0.82   // threshold
+    );
+    this.composer.addPass(bloomPass);
+
+    // Vertical Tilt-Shift (gives the exact real-world miniature tabletop diorama depth of field!)
+    this.tiltShiftPass = new ShaderPass(VerticalTiltShiftShader);
+    this.tiltShiftPass.uniforms['v'].value = 0.52; // focus center
+    this.tiltShiftPass.uniforms['r'].value = 0.38; // focus range
+    this.composer.addPass(this.tiltShiftPass);
+
+    // Subtle Vignette for cinematic framing
+    const vignettePass = new ShaderPass(VignetteShader);
+    vignettePass.uniforms['offset'].value = 1.05;
+    vignettePass.uniforms['darkness'].value = 1.12;
+    this.composer.addPass(vignettePass);
+
+    const outputPass = new OutputPass();
+    this.composer.addPass(outputPass);
 
     // Load Save or Defaults
     this.loadInitialState();
@@ -378,6 +418,7 @@ export class Game3D {
     // Build Castle
     this.castle = new Castle3D(this.scene, save.wallMaxHp, this.wallUpgradeLevel);
     this.castle.currentHp = save.wallHp;
+    this.castle.onChimneySmoke = (pos) => this.particles.emitChimneySmoke(pos);
 
     // Load Citizens
     CitizenManager.getInstance().setCitizens(save.citizens);
@@ -418,11 +459,13 @@ export class Game3D {
     if (mode === 'tactical') {
       this.targetCameraPos.set(0, 21, -19);
       this.targetCameraLook.set(0, 2.5, 9);
+      if (this.tiltShiftPass) this.tiltShiftPass.enabled = true;
     } else {
       // Rampart Marksman View: tracks player archer position!
       const playerY = Math.abs(this.playerX) > 11.8 ? 8.5 : 6.4;
       this.targetCameraPos.set(this.playerX, playerY + 1.8, -6.0);
       this.targetCameraLook.set(this.playerX, 2.5, 24);
+      if (this.tiltShiftPass) this.tiltShiftPass.enabled = false;
     }
   }
 
@@ -580,6 +623,7 @@ export class Game3D {
       this.camera.aspect = window.innerWidth / window.innerHeight;
       this.camera.updateProjectionMatrix();
       this.renderer.setSize(window.innerWidth, window.innerHeight);
+      this.composer.setSize(window.innerWidth, window.innerHeight);
     });
 
     // Pointer Move
@@ -766,6 +810,15 @@ export class Game3D {
       this.camera.position.x += (Math.random() - 0.5) * this.screenShakeIntensity;
       this.camera.position.y += (Math.random() - 0.5) * this.screenShakeIntensity;
       this.screenShakeIntensity = Math.max(0, this.screenShakeIntensity - dt * 1.5);
+    }
+
+    // Animate River Water Flow & Dynamic Sun Caustics
+    if (GameMaterials.riverWater.map) {
+      GameMaterials.riverWater.map.offset.x = (now * 0.00012) % 1;
+    }
+    if (GameMaterials.riverWater.normalMap) {
+      GameMaterials.riverWater.normalMap.offset.x = (now * 0.00018) % 1;
+      GameMaterials.riverWater.normalMap.offset.y = Math.sin(now * 0.001) * 0.03;
     }
 
     // Reticle animation
@@ -1141,12 +1194,22 @@ export class Game3D {
     }, 1400);
   }
 
+  public togglePostProcessing(): boolean {
+    this.isPostProcessingEnabled = !this.isPostProcessingEnabled;
+    return this.isPostProcessingEnabled;
+  }
+
   private render(): void {
-    this.renderer.render(this.scene, this.camera);
+    if (this.isPostProcessingEnabled) {
+      this.composer.render();
+    } else {
+      this.renderer.render(this.scene, this.camera);
+    }
   }
 
   public destroy(): void {
     this.isRunning = false;
+    this.composer.dispose();
     this.renderer.dispose();
   }
 }

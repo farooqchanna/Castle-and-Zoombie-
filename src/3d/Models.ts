@@ -234,6 +234,21 @@ export class ModelFactory {
     centerArch.castShadow = true;
     bridge.add(centerArch);
 
+    // Medieval Triangular Cutwaters (avant-becs to part river flow)
+    const cutwaterGeo = new THREE.ConeGeometry(1.1, 1.6, 3);
+    cutwaterGeo.rotateX(Math.PI / 2);
+    const leftCutwater = new THREE.Mesh(cutwaterGeo, GameMaterials.bridgeStone);
+    leftCutwater.position.set(-2.8, -0.25, 6.0);
+    leftCutwater.rotation.y = -Math.PI / 2;
+    leftCutwater.castShadow = true;
+    bridge.add(leftCutwater);
+
+    const rightCutwater = new THREE.Mesh(cutwaterGeo, GameMaterials.bridgeStone);
+    rightCutwater.position.set(2.8, -0.25, 6.0);
+    rightCutwater.rotation.y = Math.PI / 2;
+    rightCutwater.castShadow = true;
+    bridge.add(rightCutwater);
+
     // Stone Side Pier Foundations
     const sidePierGeo = new THREE.BoxGeometry(5.6, 1.6, 2.4);
     const frontPier = new THREE.Mesh(sidePierGeo, GameMaterials.bridgeStone);
@@ -561,6 +576,7 @@ export class ModelFactory {
       // Terracotta Chimney Pot
       const potGeo = new THREE.CylinderGeometry(0.2, 0.24, 0.6, 8);
       const pot = new THREE.Mesh(potGeo, GameMaterials.roofTerracotta);
+      pot.name = 'ChimneyPot';
       pot.position.set(cx, height + roofH + 0.7, -depth / 4);
       house.add(pot);
     }

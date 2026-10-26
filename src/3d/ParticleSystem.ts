@@ -138,6 +138,30 @@ export class ParticleSystem {
     }
   }
 
+  public emitChimneySmoke(pos: THREE.Vector3): void {
+    const mesh = this.getMesh(this.smokeMat, this.boxGeo);
+    mesh.position.set(
+      pos.x + (Math.random() - 0.5) * 0.15,
+      pos.y,
+      pos.z + (Math.random() - 0.5) * 0.15
+    );
+    const vel = new THREE.Vector3(
+      (Math.random() - 0.5) * 0.3 + 0.15, // Gentle breeze
+      Math.random() * 0.8 + 1.2,          // Rises lazily
+      (Math.random() - 0.5) * 0.3
+    );
+    this.particles.push({
+      mesh,
+      velocity: vel,
+      life: 1.0,
+      maxLife: 1.0,
+      decayRate: 0.55, // Lasts ~1.8s
+      gravity: -0.4,   // Floats upward
+      startScale: 0.18,
+      endScale: 0.55,  // Expands as it dissipates
+    });
+  }
+
   public emitOilFire(pos: THREE.Vector3): void {
     for (let i = 0; i < 3; i++) {
       const mesh = this.getMesh(this.fireMat, this.sparkGeo);

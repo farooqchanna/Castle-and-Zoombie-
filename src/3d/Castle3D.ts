@@ -13,6 +13,9 @@ export class Castle3D {
 
   private gateDoor?: THREE.Mesh;
   private torches: THREE.Group[] = [];
+  private chimneyPots: THREE.Object3D[] = [];
+  private chimneySmokeTimer: number = 0;
+  public onChimneySmoke?: (pos: THREE.Vector3) => void;
 
   constructor(scene: THREE.Scene, maxHp: number = 250, wallLevel: number = 1) {
     this.maxHp = maxHp;
@@ -27,10 +30,12 @@ export class Castle3D {
       this.gateDoor = door;
     }
 
-    // Find all torches for flickering animation
+    // Find all torches for flickering animation & chimney pots for smoke
     this.group.traverse((obj) => {
       if (obj.name === 'Torch' && obj instanceof THREE.Group) {
         this.torches.push(obj);
+      } else if (obj.name === 'ChimneyPot') {
+        this.chimneyPots.push(obj);
       }
     });
 
@@ -115,6 +120,20 @@ export class Castle3D {
       if (flame) {
         const s = 1.0 + Math.sin(Date.now() * 0.015 + torch.id) * 0.15;
         flame.scale.set(s, s, s);
+      }
+    }
+
+    // Village Chimney Smoke
+    this.chimneySmokeTimer += dt;
+    if (this.chimneySmokeTimer >= 0.28) {
+      this.chimneySmokeTimer = 0;
+      for (const pot of this.chimneyPots) {
+        if (Math.random() < 0.5 && this.onChimneySmoke) {
+          const worldPos = new THREE.Vector3();
+          pot.getWorldPosition(worldPos);
+          worldPos.y += 0.35;
+          this.onChimneySmoke(worldPos);
+        }
       }
     }
 
