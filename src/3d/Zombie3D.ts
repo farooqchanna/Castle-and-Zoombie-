@@ -15,17 +15,17 @@ export class Zombie3D {
 
   public isAlive: boolean = true;
   public isDying: boolean = false;
-  public deathTimer: number = 0.8;
+  public deathTimer: number = 0.85;
   public isMarked: boolean = false;
   public markedDuration: number = 0;
 
   // Animation references
-  private leftLeg?: THREE.Mesh;
-  private rightLeg?: THREE.Mesh;
-  private leftArm?: THREE.Mesh;
-  private rightArm?: THREE.Mesh;
-  private head?: THREE.Mesh;
-  private belly?: THREE.Mesh;
+  private leftLeg?: THREE.Object3D;
+  private rightLeg?: THREE.Object3D;
+  private leftArm?: THREE.Object3D;
+  private rightArm?: THREE.Object3D;
+  private headGroup?: THREE.Group;
+  private belly?: THREE.Object3D;
   private markedRing?: THREE.Mesh;
 
   private animTime: number = Math.random() * 10;
@@ -40,12 +40,12 @@ export class Zombie3D {
     this.mesh.position.set(spawnX, 0, spawnZ);
 
     // Cache limb references
-    this.leftLeg = this.mesh.getObjectByName('LeftLeg') as THREE.Mesh;
-    this.rightLeg = this.mesh.getObjectByName('RightLeg') as THREE.Mesh;
-    this.leftArm = this.mesh.getObjectByName('LeftArm') as THREE.Mesh;
-    this.rightArm = this.mesh.getObjectByName('RightArm') as THREE.Mesh;
-    this.head = this.mesh.getObjectByName('Head') as THREE.Mesh;
-    this.belly = this.mesh.getObjectByName('Belly') as THREE.Mesh;
+    this.leftLeg = this.mesh.getObjectByName('LeftLeg');
+    this.rightLeg = this.mesh.getObjectByName('RightLeg');
+    this.leftArm = this.mesh.getObjectByName('LeftArm');
+    this.rightArm = this.mesh.getObjectByName('RightArm');
+    this.headGroup = this.mesh.getObjectByName('HeadGroup') as THREE.Group;
+    this.belly = this.mesh.getObjectByName('Belly');
 
     // Stat balancing & scaling
     const hpScale = 1 + (wave - 1) * 0.22;
@@ -71,7 +71,7 @@ export class Zombie3D {
       case 'exploder':
         this.maxHp = Math.round(38 * hpScale);
         this.speed = 2.7;
-        this.gateDamage = Math.round(85 * dmgScale); // Huge explosion damage to gate
+        this.gateDamage = Math.round(85 * dmgScale);
         break;
       case 'siege':
         this.maxHp = Math.round(85 * hpScale);
@@ -89,7 +89,7 @@ export class Zombie3D {
     this.currentHp = this.maxHp;
 
     // Create Marked Target Ring (hidden initially)
-    const ringGeo = new THREE.RingGeometry(0.7, 0.9, 16);
+    const ringGeo = new THREE.RingGeometry(0.75, 0.95, 16);
     ringGeo.rotateX(-Math.PI / 2);
     const ringMat = new THREE.MeshBasicMaterial({
       color: 0xff1744,
@@ -121,6 +121,11 @@ export class Zombie3D {
       this.mesh.position.z += 0.08;
     }
 
+    // Head flinch on hit
+    if (this.headGroup) {
+      this.headGroup.rotation.x = -0.3;
+    }
+
     if (this.currentHp <= 0 && !this.isDying) {
       this.isDying = true;
       this.currentHp = 0;
@@ -130,31 +135,34 @@ export class Zombie3D {
   }
 
   public getHeadWorldPosition(): THREE.Vector3 {
-    if (this.head) {
+    if (this.headGroup) {
       const pos = new THREE.Vector3();
-      this.head.getWorldPosition(pos);
+      this.headGroup.getWorldPosition(pos);
       return pos;
     }
-    return this.mesh.position.clone().add(new THREE.Vector3(0, 1.8, 0));
+    return this.mesh.position.clone().add(new THREE.Vector3(0, 1.6, 0));
   }
 
   public getBodyWorldPosition(): THREE.Vector3 {
-    return this.mesh.position.clone().add(new THREE.Vector3(0, 1.0, 0));
+    return this.mesh.position.clone().add(new THREE.Vector3(0, 0.9, 0));
   }
 
   public update(dt: number, now: number): void {
     if (this.isDying) {
       this.deathTimer -= dt;
-      // Collapse backward & sink
-      this.mesh.rotation.x = THREE.MathUtils.lerp(this.mesh.rotation.x, -Math.PI / 2.2, dt * 6);
-      this.mesh.position.y -= dt * 0.4;
+      // Dramatic cartoon collapse: fall backward, head rolls back & sink
+      this.mesh.rotation.x = THREE.MathUtils.lerp(this.mesh.rotation.x, -Math.PI / 2.1, dt * 7);
+      if (this.headGroup) {
+        this.headGroup.rotation.x = THREE.MathUtils.lerp(this.headGroup.rotation.x, -0.6, dt * 5);
+      }
+      this.mesh.position.y -= dt * 0.45;
       if (this.deathTimer <= 0) {
         this.isAlive = false;
       }
       return;
     }
 
-    this.animTime += dt * this.speed * 2.5;
+    this.animTime += dt * this.speed * 2.6;
 
     // Marked timer
     if (this.isMarked) {
@@ -170,8 +178,16 @@ export class Zombie3D {
 
     // Exploder belly pulsation
     if (this.type === 'exploder' && this.belly) {
-      const pulse = 1.0 + Math.sin(now * 0.01) * 0.12;
-      this.belly.scale.set(pulse, pulse, pulse);
+      const pulse = 1.0 + Math.sin(now * 0.01) * 0.14;
+      this.belly.scale.set(1.4 * pulse, 1.1 * pulse, 1.35 * pulse);
+    }
+
+    // Animated Bobblehead Wobble & Bounce! (Iconic cartoon zombie characteristic)
+    if (this.headGroup) {
+      this.headGroup.rotation.z = Math.sin(this.animTime * 0.8) * 0.12;
+      this.headGroup.rotation.y = Math.cos(this.animTime * 0.5) * 0.08;
+      this.headGroup.rotation.x = THREE.MathUtils.lerp(this.headGroup.rotation.x, 0.05, dt * 5);
+      this.headGroup.position.y = 1.5 + Math.abs(Math.sin(this.animTime * 1.5)) * 0.06;
     }
 
     // Siege fiend stops at Z = 26 to throw rocks
@@ -190,12 +206,13 @@ export class Zombie3D {
       const dx = 0 - this.mesh.position.x;
       this.mesh.position.x += Math.sign(dx) * Math.min(Math.abs(dx), dt * 0.8);
 
-      // Walk cycle animation
-      const legAngle = Math.sin(this.animTime) * 0.65;
+      // Cartoon Waddle Walk cycle animation
+      const legAngle = Math.sin(this.animTime) * 0.7;
       if (this.leftLeg) this.leftLeg.rotation.x = legAngle;
       if (this.rightLeg) this.rightLeg.rotation.x = -legAngle;
 
-      const armAngle = Math.sin(this.animTime) * 0.4;
+      // Splayed arms swaying
+      const armAngle = Math.sin(this.animTime) * 0.35;
       if (this.leftArm) this.leftArm.rotation.x = armAngle;
       if (this.rightArm) this.rightArm.rotation.x = -armAngle;
     } else {
@@ -204,9 +221,14 @@ export class Zombie3D {
       this.mesh.position.z = gateTargetZ;
 
       // Attack bash animation
-      const attackAnim = Math.sin(now * 0.008) * 0.4;
-      if (this.leftArm) this.leftArm.rotation.x = Math.PI / 3 + attackAnim;
-      if (this.rightArm) this.rightArm.rotation.x = Math.PI / 3 - attackAnim;
+      const attackAnim = Math.sin(now * 0.009) * 0.45;
+      if (this.leftArm) this.leftArm.rotation.x = attackAnim;
+      if (this.rightArm) this.rightArm.rotation.x = -attackAnim;
+
+      // Head banging on gate
+      if (this.headGroup) {
+        this.headGroup.rotation.x = Math.max(0, attackAnim * 0.5);
+      }
     }
   }
 

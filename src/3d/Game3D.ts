@@ -671,10 +671,10 @@ export class Game3D {
       for (const z of this.zombies) {
         if (!z.isAlive || z.isDying) continue;
 
-        // Check Headshot first
+        // Check Headshot first (Bobblehead gives a generous, fun headshot target!)
         const headPos = z.getHeadWorldPosition();
         const headDist = arrowTipPos.distanceTo(headPos);
-        const headRadius = z.type === 'boss' ? 1.0 : 0.48;
+        const headRadius = z.type === 'boss' ? 1.7 : (z.type === 'tank' ? 0.95 : 0.75);
 
         if (headDist <= headRadius) {
           // CRITICAL HEADSHOT!
@@ -686,7 +686,7 @@ export class Game3D {
         // Check Body hit
         const bodyPos = z.getBodyWorldPosition();
         const bodyDist = arrowTipPos.distanceTo(bodyPos);
-        const bodyRadius = z.type === 'boss' ? 1.8 : (z.type === 'tank' ? 1.1 : 0.75);
+        const bodyRadius = z.type === 'boss' ? 2.0 : (z.type === 'tank' ? 1.3 : 0.82);
 
         if (bodyDist <= bodyRadius) {
           arrow.isAlive = false;
