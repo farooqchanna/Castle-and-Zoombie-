@@ -34,12 +34,13 @@ export class Coin3D {
     this.mesh.rotation.y += dt * 4.5;
 
     // Physics bounce
-    if (this.mesh.position.y > 0.15 || this.velocity.y > 0) {
+    const groundY = (this.mesh.position.z <= 14.5 && this.mesh.position.z >= -2.5) ? 0.45 : 0.15;
+    if (this.mesh.position.y > groundY || this.velocity.y > 0) {
       this.velocity.y -= 16 * dt;
       this.mesh.position.addScaledVector(this.velocity, dt);
 
-      if (this.mesh.position.y <= 0.15) {
-        this.mesh.position.y = 0.15;
+      if (this.mesh.position.y <= groundY) {
+        this.mesh.position.y = groundY;
         this.velocity.y = -this.velocity.y * 0.45;
         this.velocity.x *= 0.6;
         this.velocity.z *= 0.6;

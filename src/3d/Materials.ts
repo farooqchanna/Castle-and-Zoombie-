@@ -104,6 +104,209 @@ function createGroundTexture(): THREE.CanvasTexture {
   return tex;
 }
 
+function createCobblestoneTexture(): THREE.CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d')!;
+
+  ctx.fillStyle = '#423d38'; // Mortar base
+  ctx.fillRect(0, 0, 512, 512);
+
+  const rows = 20;
+  const rh = 512 / rows;
+  for (let r = 0; r < rows; r++) {
+    const cols = 12 + (r % 2 === 0 ? 0 : 1);
+    const cw = 512 / cols;
+    const offset = (r % 2) * (cw / 2);
+    for (let c = -1; c <= cols; c++) {
+      const x = c * cw + offset;
+      const y = r * rh;
+      const v = Math.floor(Math.random() * 30 - 15);
+      const tone = Math.min(230, Math.max(90, 140 + v));
+      ctx.fillStyle = `rgb(${tone + 8}, ${tone + 4}, ${tone - 4})`;
+      ctx.beginPath();
+      ctx.roundRect(x + 2, y + 2, cw - 4, rh - 4, 4);
+      ctx.fill();
+
+      // Stone highlight
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
+      ctx.fillRect(x + 3, y + 3, cw - 6, 2);
+    }
+  }
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.wrapS = THREE.RepeatWrapping;
+  tex.wrapT = THREE.RepeatWrapping;
+  return tex;
+}
+
+function createSlateRoofTexture(): THREE.CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 256;
+  const ctx = canvas.getContext('2d')!;
+
+  ctx.fillStyle = '#1c2833';
+  ctx.fillRect(0, 0, 256, 256);
+
+  const rows = 16;
+  const rh = 256 / rows;
+  const cw = 256 / 8;
+  for (let r = 0; r < rows; r++) {
+    const offset = (r % 2) * (cw / 2);
+    for (let c = -1; c <= 8; c++) {
+      const x = c * cw + offset;
+      const y = r * rh;
+      const v = Math.floor(Math.random() * 24 - 12);
+      ctx.fillStyle = `rgb(${44 + v}, ${62 + v}, ${80 + v})`;
+      ctx.fillRect(x + 1, y + 1, cw - 2, rh);
+
+      // Slate bevel edge
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+      ctx.fillRect(x + 1, y + rh - 2, cw - 2, 2);
+    }
+  }
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.wrapS = THREE.RepeatWrapping;
+  tex.wrapT = THREE.RepeatWrapping;
+  return tex;
+}
+
+function createTerracottaRoofTexture(): THREE.CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 256;
+  const ctx = canvas.getContext('2d')!;
+
+  ctx.fillStyle = '#5c2214';
+  ctx.fillRect(0, 0, 256, 256);
+
+  const cols = 12;
+  const cw = 256 / cols;
+  for (let c = 0; c < cols; c++) {
+    const x = c * cw;
+    const grad = ctx.createLinearGradient(x, 0, x + cw, 0);
+    grad.addColorStop(0, '#752d1b');
+    grad.addColorStop(0.3, '#b34d31');
+    grad.addColorStop(0.7, '#c95b3b');
+    grad.addColorStop(1, '#5c2214');
+    ctx.fillStyle = grad;
+    ctx.fillRect(x + 1, 0, cw - 2, 256);
+
+    // Clay tile segments
+    for (let y = 0; y < 256; y += 24) {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+      ctx.fillRect(x, y, cw, 2);
+    }
+  }
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.wrapS = THREE.RepeatWrapping;
+  tex.wrapT = THREE.RepeatWrapping;
+  return tex;
+}
+
+function createTimberWallTexture(): THREE.CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 256;
+  const ctx = canvas.getContext('2d')!;
+
+  // Stucco cream wall
+  ctx.fillStyle = '#ece0d1';
+  ctx.fillRect(0, 0, 256, 256);
+
+  // Subtle stucco plaster texture
+  for (let i = 0; i < 400; i++) {
+    ctx.fillStyle = Math.random() > 0.5 ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.05)';
+    ctx.fillRect(Math.random() * 256, Math.random() * 256, 3, 3);
+  }
+
+  // Dark timber cross-beams
+  ctx.fillStyle = '#3e2723';
+  // Outer frame
+  ctx.fillRect(0, 0, 256, 12);
+  ctx.fillRect(0, 244, 256, 12);
+  ctx.fillRect(0, 0, 12, 256);
+  ctx.fillRect(244, 0, 12, 256);
+  // Center post
+  ctx.fillRect(122, 0, 12, 256);
+  // Mid rail
+  ctx.fillRect(0, 122, 256, 12);
+
+  // Diagonal X braces
+  ctx.lineWidth = 10;
+  ctx.strokeStyle = '#3e2723';
+  ctx.beginPath();
+  ctx.moveTo(12, 12);
+  ctx.lineTo(122, 122);
+  ctx.moveTo(122, 12);
+  ctx.lineTo(12, 122);
+  ctx.moveTo(134, 134);
+  ctx.lineTo(244, 244);
+  ctx.moveTo(244, 134);
+  ctx.lineTo(134, 244);
+  ctx.stroke();
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.wrapS = THREE.RepeatWrapping;
+  tex.wrapT = THREE.RepeatWrapping;
+  return tex;
+}
+
+function createStripedAwningTexture(color1: string, color2: string): THREE.CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 128;
+  canvas.height = 128;
+  const ctx = canvas.getContext('2d')!;
+
+  const stripes = 8;
+  const sw = 128 / stripes;
+  for (let i = 0; i < stripes; i++) {
+    ctx.fillStyle = i % 2 === 0 ? color1 : color2;
+    ctx.fillRect(i * sw, 0, sw, 128);
+  }
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.wrapS = THREE.RepeatWrapping;
+  tex.wrapT = THREE.RepeatWrapping;
+  return tex;
+}
+
+function createRiverWaterTexture(): THREE.CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 256;
+  const ctx = canvas.getContext('2d')!;
+
+  // Mountain crystal blue gradient
+  const grad = ctx.createLinearGradient(0, 0, 256, 256);
+  grad.addColorStop(0, '#0277bd');
+  grad.addColorStop(0.5, '#0288d1');
+  grad.addColorStop(1, '#00acc1');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 256, 256);
+
+  // Gentle wave caustics
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.28)';
+  ctx.lineWidth = 2.5;
+  for (let y = 16; y < 256; y += 28) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    for (let x = 0; x <= 256; x += 32) {
+      ctx.quadraticCurveTo(x + 16, y + (Math.random() - 0.5) * 14, x + 32, y);
+    }
+    ctx.stroke();
+  }
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.wrapS = THREE.RepeatWrapping;
+  tex.wrapT = THREE.RepeatWrapping;
+  return tex;
+}
+
 function createGoldCoinTexture(): THREE.CanvasTexture {
   const canvas = document.createElement('canvas');
   canvas.width = 128;
@@ -315,6 +518,14 @@ export class GameMaterials {
   public static woodTex = createWoodTexture();
   public static groundTex = createGroundTexture();
   public static coinTex = createGoldCoinTexture();
+  public static cobblestoneTex = createCobblestoneTexture();
+  public static slateRoofTex = createSlateRoofTexture();
+  public static terracottaRoofTex = createTerracottaRoofTexture();
+  public static timberWallTex = createTimberWallTexture();
+  public static riverWaterTex = createRiverWaterTexture();
+  public static awningRedTex = createStripedAwningTexture('#c62828', '#fffde7');
+  public static awningYellowTex = createStripedAwningTexture('#f9a825', '#fffde7');
+  public static awningBlueTex = createStripedAwningTexture('#1565c0', '#e3f2fd');
 
   // Cartoon Eye Textures
   public static eyeTexNormal = createCartoonEyeTexture('normal');
@@ -341,6 +552,12 @@ export class GameMaterials {
     metalness: 0.1,
   });
 
+  public static darkWood = new THREE.MeshStandardMaterial({
+    color: 0x3e2723,
+    roughness: 0.7,
+    metalness: 0.05,
+  });
+
   public static ironTrim = new THREE.MeshStandardMaterial({
     color: 0x37474f,
     roughness: 0.35,
@@ -357,6 +574,99 @@ export class GameMaterials {
     map: GameMaterials.groundTex,
     roughness: 0.85,
     metalness: 0.05,
+  });
+
+  // Medieval Tabletop Diorama Materials (Matching User's Reference!)
+  public static cobblestone = new THREE.MeshStandardMaterial({
+    map: GameMaterials.cobblestoneTex,
+    roughness: 0.7,
+    metalness: 0.08,
+  });
+
+  public static bridgeStone = new THREE.MeshStandardMaterial({
+    map: GameMaterials.stoneTex,
+    color: 0xdcd0c0, // Warm weathered bridge ashlar stone
+    roughness: 0.6,
+    metalness: 0.08,
+  });
+
+  public static roofSlateBlue = new THREE.MeshStandardMaterial({
+    map: GameMaterials.slateRoofTex,
+    roughness: 0.45,
+    metalness: 0.15,
+  });
+
+  public static roofTerracotta = new THREE.MeshStandardMaterial({
+    map: GameMaterials.terracottaRoofTex,
+    roughness: 0.6,
+    metalness: 0.05,
+  });
+
+  public static timberWall = new THREE.MeshStandardMaterial({
+    map: GameMaterials.timberWallTex,
+    roughness: 0.75,
+    metalness: 0.02,
+  });
+
+  public static riverWater = new THREE.MeshStandardMaterial({
+    map: GameMaterials.riverWaterTex,
+    roughness: 0.12,
+    metalness: 0.25,
+    transparent: true,
+    opacity: 0.92,
+  });
+
+  public static awningRed = new THREE.MeshStandardMaterial({
+    map: GameMaterials.awningRedTex,
+    roughness: 0.6,
+  });
+
+  public static awningYellow = new THREE.MeshStandardMaterial({
+    map: GameMaterials.awningYellowTex,
+    roughness: 0.6,
+  });
+
+  public static awningBlue = new THREE.MeshStandardMaterial({
+    map: GameMaterials.awningBlueTex,
+    roughness: 0.6,
+  });
+
+  public static pineNeedles = new THREE.MeshStandardMaterial({
+    color: 0x1b4332, // Deep alpine fir green
+    roughness: 0.8,
+  });
+
+  public static pineTrunk = new THREE.MeshStandardMaterial({
+    color: 0x4a2e18,
+    roughness: 0.85,
+  });
+
+  public static mountainRock = new THREE.MeshStandardMaterial({
+    color: 0x5a6577, // Slate alpine mountain granite
+    roughness: 0.8,
+    metalness: 0.1,
+  });
+
+  public static windowGlow = new THREE.MeshBasicMaterial({
+    color: 0xffd54f, // Cozy warm candlelight from inside village cottages
+  });
+
+  public static fountainWater = new THREE.MeshStandardMaterial({
+    color: 0x4fc3f7,
+    roughness: 0.1,
+    metalness: 0.3,
+    transparent: true,
+    opacity: 0.85,
+  });
+
+  public static flagBlue = new THREE.MeshStandardMaterial({
+    color: 0x1976d2,
+    roughness: 0.6,
+  });
+
+  public static flagRed = new THREE.MeshStandardMaterial({
+    color: 0xd32f2f,
+    roughness: 0.6,
   });
 
   // Lava / Molten Oil

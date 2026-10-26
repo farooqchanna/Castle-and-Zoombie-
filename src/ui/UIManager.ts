@@ -521,7 +521,7 @@ export class UIManager {
 
         <button class="skill-btn" id="btn-auto-aim">
           <span>🎯 Auto-Aim</span>
-          <span class="skill-key" id="key-auto-aim">[A] ON</span>
+          <span class="skill-key" id="key-auto-aim">[T] ON</span>
         </button>
 
         <button class="skill-btn" id="btn-vantage-spot">
@@ -562,7 +562,7 @@ export class UIManager {
     this.hudElement.querySelector('#btn-auto-aim')?.addEventListener('click', () => {
       const state = this.game.toggleAutoAim();
       const el = document.getElementById('key-auto-aim');
-      if (el) el.textContent = `[A] ${state ? 'ON' : 'OFF'}`;
+      if (el) el.textContent = `[T] ${state ? 'ON' : 'OFF'}`;
     });
 
     this.hudElement.querySelector('#btn-vantage-spot')?.addEventListener('click', () => {

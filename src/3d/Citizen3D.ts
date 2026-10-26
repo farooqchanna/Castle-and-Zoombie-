@@ -191,6 +191,14 @@ export class Citizen3D {
     const speed = swiftPerk ? this.moveSpeed * 1.5 : this.moveSpeed;
     const retreatDist = swiftPerk ? 6.5 : 4.5;
 
+    // Adapt elevation and constrain within bridge parapets when crossing
+    if (this.mesh.position.z <= 14.5 && this.mesh.position.z >= -2.5) {
+      this.mesh.position.y = 0.35;
+      this.mesh.position.x = Math.max(-1.8, Math.min(1.8, this.mesh.position.x));
+    } else {
+      this.mesh.position.y = 0;
+    }
+
     // Check if any zombie is too close
     let inDanger = false;
     for (const z of zombies) {

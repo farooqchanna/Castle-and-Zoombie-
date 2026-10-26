@@ -206,9 +206,18 @@ export class Zombie3D {
       this.isAtGate = false;
       this.mesh.position.z -= this.speed * dt;
 
-      // Slight homing towards center gate X = 0
-      const dx = 0 - this.mesh.position.x;
-      this.mesh.position.x += Math.sign(dx) * Math.min(Math.abs(dx), dt * 0.8);
+      // Road & Bridge navigation:
+      if (this.mesh.position.z > 14.5) {
+        // Valley road: funnel towards bridge mouth
+        const dx = 0 - this.mesh.position.x;
+        this.mesh.position.x += Math.sign(dx) * Math.min(Math.abs(dx), dt * 1.5);
+        this.mesh.position.y = THREE.MathUtils.lerp(this.mesh.position.y, 0, dt * 8);
+      } else {
+        // Crossing the Stone Arch Bridge (Z = 14.5 to -2.5)
+        // Constrain width between parapets and elevate to stone bridge deck!
+        this.mesh.position.x = Math.max(-1.8, Math.min(1.8, this.mesh.position.x));
+        this.mesh.position.y = THREE.MathUtils.lerp(this.mesh.position.y, 0.35, dt * 8);
+      }
 
       // Keep facing directly towards the castle gate as they walk!
       const toGate = new THREE.Vector3(0, 0, -4.0).sub(this.mesh.position);

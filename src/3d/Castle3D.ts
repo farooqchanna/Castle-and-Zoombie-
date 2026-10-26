@@ -98,7 +98,7 @@ export class Castle3D {
       metalness: 0.1,
     });
     this.oilPuddleMesh = new THREE.Mesh(puddleGeo, puddleMat);
-    this.oilPuddleMesh.position.set(0, 0.05, -1.5);
+    this.oilPuddleMesh.position.set(0, 0.40, -2.4);
     scene.add(this.oilPuddleMesh);
 
     this.oilPuddleTimeRemaining = 7.0; // 7 seconds burning pool

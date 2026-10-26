@@ -24,9 +24,9 @@ export class Game3D {
 
   // Camera Management
   public cameraMode: CameraMode = 'tactical';
-  private targetCameraPos = new THREE.Vector3(0, 17, -17);
-  private targetCameraLook = new THREE.Vector3(0, 2, 13);
-  private currentCameraLook = new THREE.Vector3(0, 2, 13);
+  private targetCameraPos = new THREE.Vector3(0, 21, -19);
+  private targetCameraLook = new THREE.Vector3(0, 2.5, 9);
+  private currentCameraLook = new THREE.Vector3(0, 2.5, 9);
 
   // Entities & Subsystems
   public castle!: Castle3D;
@@ -123,10 +123,10 @@ export class Game3D {
     this.renderer.toneMappingExposure = 1.35;
     this.container.appendChild(this.renderer.domElement);
 
-    // Scene & Fog (Bright, crisp stylized studio environment)
+    // Scene & Fog (Sunny Alpine Mountain Valley Atmosphere)
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x42586b); // High-contrast stylized studio backdrop
-    this.scene.fog = new THREE.Fog(0x42586b, 65, 170); // Gentle distant falloff (characters remain 100% visible)
+    this.scene.background = new THREE.Color(0x7193a6); // Sunny Alpine mountain sky
+    this.scene.fog = new THREE.Fog(0x7193a6, 80, 190); // Gentle distant mountain haze (characters 100% visible)
 
     // Camera
     this.camera = new THREE.PerspectiveCamera(
@@ -180,7 +180,7 @@ export class Game3D {
     this.scene.add(hemiLight);
 
     // Primary Sunlight / Key Light (Crisp, warm cartoon directional light)
-    const keyLight = new THREE.DirectionalLight(0xfffaea, 2.3);
+    const keyLight = new THREE.DirectionalLight(0xfffaea, 2.5);
     keyLight.position.set(18, 32, 22);
     keyLight.castShadow = true;
     keyLight.shadow.mapSize.width = 2048;
@@ -205,19 +205,149 @@ export class Game3D {
     rimLight.position.set(0, 20, 60);
     this.scene.add(rimLight);
 
-    // 3D Battleground Terrain (Vibrant, high-contrast grass and cobblestone)
-    const groundGeo = new THREE.PlaneGeometry(60, 95, 32, 32);
+    // -----------------------------------------------------------------------
+    // 1. ALPINE VALLEY MEADOW (Vibrant Green Battlefield Terrain)
+    // -----------------------------------------------------------------------
+    const groundGeo = new THREE.PlaneGeometry(75, 105, 32, 32);
     groundGeo.rotateX(-Math.PI / 2);
     const groundMesh = new THREE.Mesh(groundGeo, GameMaterials.ground);
-    groundMesh.position.set(0, 0, 24);
+    groundMesh.position.set(0, 0, 28);
     groundMesh.receiveShadow = true;
     this.scene.add(groundMesh);
 
-    // Wooden Spike Barricades on Battlefield
+    // -----------------------------------------------------------------------
+    // 2. THE ALPINE RIVER MOAT (Flowing Under the Stone Bridge!)
+    // -----------------------------------------------------------------------
+    // River Channel Cut / Bed
+    const riverBedGeo = new THREE.PlaneGeometry(75, 8.5);
+    riverBedGeo.rotateX(-Math.PI / 2);
+    const riverBed = new THREE.Mesh(riverBedGeo, GameMaterials.cobblestone);
+    riverBed.position.set(0, -0.25, 7.0);
+    riverBed.receiveShadow = true;
+    this.scene.add(riverBed);
+
+    // Crystal Mountain River Water Surface
+    const riverGeo = new THREE.PlaneGeometry(75, 8.5);
+    riverGeo.rotateX(-Math.PI / 2);
+    const riverMesh = new THREE.Mesh(riverGeo, GameMaterials.riverWater);
+    riverMesh.position.set(0, -0.05, 7.0);
+    this.scene.add(riverMesh);
+
+    // Stone Retaining Walls along the Riverbanks (Flanking the bridge)
+    const bankGeo = new THREE.BoxGeometry(34, 0.45, 0.6);
+    // Castle-side riverbank (left & right of bridge)
+    const bank1L = new THREE.Mesh(bankGeo, GameMaterials.bridgeStone);
+    bank1L.position.set(-19.8, 0.15, 2.7);
+    this.scene.add(bank1L);
+
+    const bank1R = new THREE.Mesh(bankGeo, GameMaterials.bridgeStone);
+    bank1R.position.set(19.8, 0.15, 2.7);
+    this.scene.add(bank1R);
+
+    // Meadow-side riverbank (left & right of bridge)
+    const bank2L = new THREE.Mesh(bankGeo, GameMaterials.bridgeStone);
+    bank2L.position.set(-19.8, 0.15, 11.3);
+    this.scene.add(bank2L);
+
+    const bank2R = new THREE.Mesh(bankGeo, GameMaterials.bridgeStone);
+    bank2R.position.set(19.8, 0.15, 11.3);
+    this.scene.add(bank2R);
+
+    // -----------------------------------------------------------------------
+    // 3. COBBLESTONE VALLEY HIGHWAY (Connecting to the Stone Bridge!)
+    // -----------------------------------------------------------------------
+    const roadGeo = new THREE.PlaneGeometry(5.4, 52);
+    roadGeo.rotateX(-Math.PI / 2);
+    const roadMesh = new THREE.Mesh(roadGeo, GameMaterials.cobblestone);
+    roadMesh.position.set(0, 0.02, 40.0); // Z = 14.0 to 66.0
+    roadMesh.receiveShadow = true;
+    this.scene.add(roadMesh);
+
+    // -----------------------------------------------------------------------
+    // 4. ALPINE BOULDERS & RIVER ROCKS
+    // -----------------------------------------------------------------------
+    const boulderCoords = [
+      { x: -5.2, z: 6.8, s: 0.9 },
+      { x: 5.6, z: 7.2, s: 1.1 },
+      { x: -8.5, z: 12.0, s: 0.7 },
+      { x: 7.8, z: 12.2, s: 0.8 },
+      { x: -14.0, z: 6.0, s: 1.3 },
+      { x: 14.5, z: 8.0, s: 1.2 },
+      { x: -4.2, z: 22.0, s: 0.6 },
+      { x: 4.5, z: 32.0, s: 0.7 },
+      { x: -5.0, z: 42.0, s: 0.8 },
+      { x: 5.2, z: 50.0, s: 0.9 },
+    ];
+
+    for (const bc of boulderCoords) {
+      const rockGeo = new THREE.DodecahedronGeometry(bc.s, 1);
+      const rock = new THREE.Mesh(rockGeo, GameMaterials.mountainRock);
+      rock.position.set(bc.x, bc.s * 0.4, bc.z);
+      rock.rotation.set(Math.random() * 2, Math.random() * 2, Math.random() * 2);
+      rock.castShadow = true;
+      rock.receiveShadow = true;
+      this.scene.add(rock);
+    }
+
+    // -----------------------------------------------------------------------
+    // 5. ALPINE VALLEY CONIFER FORESTS (Lining the Meadow Highway)
+    // -----------------------------------------------------------------------
+    const valleyTrees = [
+      { x: -8.5, z: 18.0, h: 6.0 },
+      { x: -14.0, z: 22.0, h: 7.2 },
+      { x: -10.5, z: 28.0, h: 5.5 },
+      { x: -16.0, z: 34.0, h: 8.0 },
+      { x: -11.0, z: 42.0, h: 6.5 },
+      { x: -15.5, z: 50.0, h: 7.8 },
+      { x: 8.5, z: 18.0, h: 6.0 },
+      { x: 14.0, z: 22.0, h: 7.2 },
+      { x: 10.5, z: 28.0, h: 5.5 },
+      { x: 16.0, z: 34.0, h: 8.0 },
+      { x: 11.0, z: 42.0, h: 6.5 },
+      { x: 15.5, z: 50.0, h: 7.8 },
+    ];
+
+    for (const vt of valleyTrees) {
+      const tree = ModelFactory.createAlpineTree(vt.h);
+      tree.position.set(vt.x, 0, vt.z);
+      this.scene.add(tree);
+    }
+
+    // -----------------------------------------------------------------------
+    // 6. DISTANT ALPINE MOUNTAIN PEAKS BACKDROP (Majestic Diorama Frame!)
+    // -----------------------------------------------------------------------
+    const mountainGroup = new THREE.Group();
+    const mountainPeaks = [
+      { x: -28, z: 72, r: 18, h: 26 },
+      { x: -10, z: 80, r: 22, h: 32 },
+      { x: 12, z: 76, r: 20, h: 28 },
+      { x: 30, z: 70, r: 16, h: 24 },
+    ];
+
+    for (const mp of mountainPeaks) {
+      const peakGeo = new THREE.ConeGeometry(mp.r, mp.h, 7);
+      const peak = new THREE.Mesh(peakGeo, GameMaterials.mountainRock);
+      peak.position.set(mp.x, mp.h / 2 - 2, mp.z);
+      peak.rotation.y = Math.random() * Math.PI;
+      mountainGroup.add(peak);
+
+      // Snow-capped peak summit
+      const snowGeo = new THREE.ConeGeometry(mp.r * 0.35, mp.h * 0.35, 7);
+      const snowMat = new THREE.MeshStandardMaterial({ color: 0xf5f5f5, roughness: 0.6 });
+      const snow = new THREE.Mesh(snowGeo, snowMat);
+      snow.position.set(mp.x, mp.h * 0.85 - 2, mp.z);
+      snow.rotation.y = peak.rotation.y;
+      mountainGroup.add(snow);
+    }
+    this.scene.add(mountainGroup);
+
+    // -----------------------------------------------------------------------
+    // 7. WOODEN SPIKE BARRICADES ALONG FLANKS
+    // -----------------------------------------------------------------------
     for (let i = -10; i <= 10; i += 4.5) {
-      if (Math.abs(i) < 2.5) continue; // Keep central pathway open
-      this.createBarricade(i, 8 + (Math.random() - 0.5) * 2);
-      this.createBarricade(i * 0.8, 18 + (Math.random() - 0.5) * 3);
+      if (Math.abs(i) < 3.2) continue; // Keep central highway wide open for bridge approach
+      this.createBarricade(i, 18 + (Math.random() - 0.5) * 2);
+      this.createBarricade(i * 0.9, 28 + (Math.random() - 0.5) * 3);
     }
   }
 
@@ -286,8 +416,8 @@ export class Game3D {
   public setCameraMode(mode: CameraMode): void {
     this.cameraMode = mode;
     if (mode === 'tactical') {
-      this.targetCameraPos.set(0, 17, -17);
-      this.targetCameraLook.set(0, 2, 13);
+      this.targetCameraPos.set(0, 21, -19);
+      this.targetCameraLook.set(0, 2.5, 9);
     } else {
       // Rampart Marksman View: tracks player archer position!
       const playerY = Math.abs(this.playerX) > 11.8 ? 8.5 : 6.4;
@@ -414,7 +544,7 @@ export class Game3D {
 
     this.zombiesSpawned++;
     const spawnZ = 52 + Math.random() * 8;
-    const spawnX = (Math.random() - 0.5) * 22;
+    const spawnX = (Math.random() - 0.5) * 12;
 
     // Composition logic based on wave
     let type: ZombieType = 'walker';
