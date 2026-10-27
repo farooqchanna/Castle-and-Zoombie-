@@ -744,25 +744,25 @@ export class GameMaterials {
   public static stoneWall = new THREE.MeshStandardMaterial({
     map: GameMaterials.stoneTex,
     bumpMap: GameMaterials.stoneBumpTex,
-    bumpScale: 0.08,
-    roughness: 0.65,
-    metalness: 0.1,
+    bumpScale: 0.025,
+    roughness: 0.7,
+    metalness: 0.05,
   });
 
   public static castleWood = new THREE.MeshStandardMaterial({
     map: GameMaterials.woodTex,
     bumpMap: GameMaterials.woodBumpTex,
-    bumpScale: 0.07,
-    roughness: 0.6,
-    metalness: 0.1,
+    bumpScale: 0.02,
+    roughness: 0.65,
+    metalness: 0.05,
   });
 
   public static darkWood = new THREE.MeshStandardMaterial({
     color: 0x3e2723,
     bumpMap: GameMaterials.woodBumpTex,
-    bumpScale: 0.07,
-    roughness: 0.7,
-    metalness: 0.05,
+    bumpScale: 0.02,
+    roughness: 0.75,
+    metalness: 0.02,
   });
 
   public static ironTrim = new THREE.MeshStandardMaterial({
@@ -774,55 +774,55 @@ export class GameMaterials {
   public static towerRoof = new THREE.MeshStandardMaterial({
     color: 0x2e4057,
     bumpMap: GameMaterials.slateBumpTex,
-    bumpScale: 0.09,
-    roughness: 0.5,
-    metalness: 0.2,
+    bumpScale: 0.03,
+    roughness: 0.55,
+    metalness: 0.15,
   });
 
   public static ground = new THREE.MeshStandardMaterial({
     map: GameMaterials.groundTex,
     roughness: 0.85,
-    metalness: 0.05,
+    metalness: 0.02,
   });
 
   // Medieval Tabletop Diorama Materials (Tactile PBR with Physical Depth!)
   public static cobblestone = new THREE.MeshStandardMaterial({
     map: GameMaterials.cobblestoneTex,
     bumpMap: GameMaterials.cobbleBumpTex,
-    bumpScale: 0.14,
-    roughness: 0.65,
-    metalness: 0.08,
+    bumpScale: 0.03,
+    roughness: 0.7,
+    metalness: 0.04,
   });
 
   public static bridgeStone = new THREE.MeshStandardMaterial({
     map: GameMaterials.stoneTex,
     bumpMap: GameMaterials.stoneBumpTex,
-    bumpScale: 0.10,
+    bumpScale: 0.03,
     color: 0xdcd0c0, // Warm weathered bridge ashlar stone
-    roughness: 0.6,
-    metalness: 0.08,
+    roughness: 0.65,
+    metalness: 0.04,
   });
 
   public static roofSlateBlue = new THREE.MeshStandardMaterial({
     map: GameMaterials.slateRoofTex,
     bumpMap: GameMaterials.slateBumpTex,
-    bumpScale: 0.09,
-    roughness: 0.45,
-    metalness: 0.15,
+    bumpScale: 0.03,
+    roughness: 0.5,
+    metalness: 0.1,
   });
 
   public static roofTerracotta = new THREE.MeshStandardMaterial({
     map: GameMaterials.terracottaRoofTex,
     bumpMap: GameMaterials.terracottaBumpTex,
-    bumpScale: 0.12,
-    roughness: 0.6,
-    metalness: 0.05,
+    bumpScale: 0.03,
+    roughness: 0.65,
+    metalness: 0.04,
   });
 
   public static timberWall = new THREE.MeshStandardMaterial({
     map: GameMaterials.timberWallTex,
     bumpMap: GameMaterials.woodBumpTex,
-    bumpScale: 0.05,
+    bumpScale: 0.02,
     roughness: 0.75,
     metalness: 0.02,
   });
@@ -830,11 +830,11 @@ export class GameMaterials {
   public static riverWater = new THREE.MeshStandardMaterial({
     map: GameMaterials.riverWaterTex,
     normalMap: GameMaterials.waterNormalTex,
-    normalScale: new THREE.Vector2(0.8, 0.8),
-    roughness: 0.12,
-    metalness: 0.35,
+    normalScale: new THREE.Vector2(0.25, 0.25),
+    roughness: 0.22,
+    metalness: 0.1,
     transparent: true,
-    opacity: 0.92,
+    opacity: 0.88,
   });
 
   public static awningRed = new THREE.MeshStandardMaterial({

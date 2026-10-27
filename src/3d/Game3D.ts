@@ -1,12 +1,4 @@
 import * as THREE from 'three';
-import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
-import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
-import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
-import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
-import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
-import { VerticalTiltShiftShader } from 'three/examples/jsm/shaders/VerticalTiltShiftShader.js';
-import { VignetteShader } from 'three/examples/jsm/shaders/VignetteShader.js';
-
 import { GameMaterials } from './Materials';
 import { ModelFactory } from './Models';
 import { Castle3D } from './Castle3D';
@@ -29,15 +21,12 @@ export class Game3D {
   public scene: THREE.Scene;
   public camera: THREE.PerspectiveCamera;
   public renderer: THREE.WebGLRenderer;
-  public composer: EffectComposer;
-  private tiltShiftPass!: ShaderPass;
-  public isPostProcessingEnabled: boolean = true;
 
   // Camera Management
   public cameraMode: CameraMode = 'tactical';
-  private targetCameraPos = new THREE.Vector3(0, 21, -19);
-  private targetCameraLook = new THREE.Vector3(0, 2.5, 9);
-  private currentCameraLook = new THREE.Vector3(0, 2.5, 9);
+  private targetCameraPos = new THREE.Vector3(0, 18, -17);
+  private targetCameraLook = new THREE.Vector3(0, 2.2, 11);
+  private currentCameraLook = new THREE.Vector3(0, 2.2, 11);
 
   // Entities & Subsystems
   public castle!: Castle3D;
@@ -131,13 +120,13 @@ export class Game3D {
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.35;
+    this.renderer.toneMappingExposure = 1.15;
     this.container.appendChild(this.renderer.domElement);
 
-    // Scene & Fog (Sunny Alpine Mountain Valley Atmosphere)
+    // Scene & Fog (Atmospheric studio backdrop with crisp contrast)
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x7193a6); // Sunny Alpine mountain sky
-    this.scene.fog = new THREE.Fog(0x7193a6, 80, 190); // Gentle distant mountain haze (characters 100% visible)
+    this.scene.background = new THREE.Color(0x3e5264);
+    this.scene.fog = new THREE.Fog(0x3e5264, 70, 180);
 
     // Camera
     this.camera = new THREE.PerspectiveCamera(
@@ -174,35 +163,6 @@ export class Game3D {
     this.playerArcher.position.set(0, 6.4, -5.8);
     this.scene.add(this.playerArcher);
 
-    // Initialize Post-Processing EffectComposer for Miniature Tilt-Shift Realism
-    this.composer = new EffectComposer(this.renderer);
-    const renderPass = new RenderPass(this.scene, this.camera);
-    this.composer.addPass(renderPass);
-
-    // Subtle bloom for torch flames, lanterns, and river sun specular highlights
-    const bloomPass = new UnrealBloomPass(
-      new THREE.Vector2(window.innerWidth, window.innerHeight),
-      0.32,  // subtle strength
-      0.4,   // radius
-      0.82   // threshold
-    );
-    this.composer.addPass(bloomPass);
-
-    // Vertical Tilt-Shift (gives the exact real-world miniature tabletop diorama depth of field!)
-    this.tiltShiftPass = new ShaderPass(VerticalTiltShiftShader);
-    this.tiltShiftPass.uniforms['v'].value = 0.52; // focus center
-    this.tiltShiftPass.uniforms['r'].value = 0.38; // focus range
-    this.composer.addPass(this.tiltShiftPass);
-
-    // Subtle Vignette for cinematic framing
-    const vignettePass = new ShaderPass(VignetteShader);
-    vignettePass.uniforms['offset'].value = 1.05;
-    vignettePass.uniforms['darkness'].value = 1.12;
-    this.composer.addPass(vignettePass);
-
-    const outputPass = new OutputPass();
-    this.composer.addPass(outputPass);
-
     // Load Save or Defaults
     this.loadInitialState();
 
@@ -215,12 +175,12 @@ export class Game3D {
   }
 
   private setupEnvironment(): void {
-    // Bright Stylized Ambient & Hemispheric Light (Eliminates murky black shadows!)
-    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x546e7a, 1.9);
+    // Soft Ambient & Hemispheric Light (Eliminates murky black shadows without bleaching surfaces)
+    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x475e6d, 1.35);
     this.scene.add(hemiLight);
 
-    // Primary Sunlight / Key Light (Crisp, warm cartoon directional light)
-    const keyLight = new THREE.DirectionalLight(0xfffaea, 2.5);
+    // Primary Sunlight / Key Light (Crisp, warm directional sunlight with soft shadows)
+    const keyLight = new THREE.DirectionalLight(0xfff6e5, 1.85);
     keyLight.position.set(18, 32, 22);
     keyLight.castShadow = true;
     keyLight.shadow.mapSize.width = 2048;
@@ -235,42 +195,51 @@ export class Game3D {
     keyLight.shadow.bias = -0.0004;
     this.scene.add(keyLight);
 
-    // Front Camera Fill Light (Ensures front-facing faces, eyes, and clothes are 100% visible and bright!)
-    const frontFillLight = new THREE.DirectionalLight(0xe1f5fe, 1.4);
+    // Front Camera Fill Light (Ensures front-facing faces, eyes, and clothes are clear and readable)
+    const frontFillLight = new THREE.DirectionalLight(0xdbe9f4, 0.75);
     frontFillLight.position.set(0, 15, -20);
     this.scene.add(frontFillLight);
 
-    // Rim / Edge Light (Creates crisp cartoon outlines along the silhouette of zombies and heroes)
-    const rimLight = new THREE.DirectionalLight(0xffea00, 1.0);
-    rimLight.position.set(0, 20, 60);
+    // Rim / Edge Light (Subtle highlight on silhouettes)
+    const rimLight = new THREE.DirectionalLight(0xffd54f, 0.45);
+    rimLight.position.set(0, 20, 55);
     this.scene.add(rimLight);
 
     // -----------------------------------------------------------------------
-    // 1. ALPINE VALLEY MEADOW (Vibrant Green Battlefield Terrain)
+    // 1. ALPINE VALLEY MEADOW & CASTLE COURTYARD (Vibrant Green Battlefield Terrain)
     // -----------------------------------------------------------------------
-    const groundGeo = new THREE.PlaneGeometry(75, 105, 32, 32);
-    groundGeo.rotateX(-Math.PI / 2);
-    const groundMesh = new THREE.Mesh(groundGeo, GameMaterials.ground);
-    groundMesh.position.set(0, 0, 28);
-    groundMesh.receiveShadow = true;
-    this.scene.add(groundMesh);
+    // Meadow Ground (In front of river moat)
+    const meadowGeo = new THREE.PlaneGeometry(75, 70, 16, 16);
+    meadowGeo.rotateX(-Math.PI / 2);
+    const meadowMesh = new THREE.Mesh(meadowGeo, GameMaterials.ground);
+    meadowMesh.position.set(0, 0, 46.5); // Z = 11.5 to 81.5
+    meadowMesh.receiveShadow = true;
+    this.scene.add(meadowMesh);
+
+    // Castle Courtyard Ground (Behind river moat)
+    const castleGroundGeo = new THREE.PlaneGeometry(75, 26, 16, 16);
+    castleGroundGeo.rotateX(-Math.PI / 2);
+    const castleGroundMesh = new THREE.Mesh(castleGroundGeo, GameMaterials.ground);
+    castleGroundMesh.position.set(0, 0, -10.5); // Z = -23.5 to 2.5
+    castleGroundMesh.receiveShadow = true;
+    this.scene.add(castleGroundMesh);
 
     // -----------------------------------------------------------------------
-    // 2. THE ALPINE RIVER MOAT (Flowing Under the Stone Bridge!)
+    // 2. THE ALPINE RIVER MOAT (Flowing Under the Arched Stone Bridge!)
     // -----------------------------------------------------------------------
     // River Channel Cut / Bed
-    const riverBedGeo = new THREE.PlaneGeometry(75, 8.5);
+    const riverBedGeo = new THREE.PlaneGeometry(75, 9.0);
     riverBedGeo.rotateX(-Math.PI / 2);
     const riverBed = new THREE.Mesh(riverBedGeo, GameMaterials.cobblestone);
-    riverBed.position.set(0, -0.25, 7.0);
+    riverBed.position.set(0, -0.32, 7.0);
     riverBed.receiveShadow = true;
     this.scene.add(riverBed);
 
     // Crystal Mountain River Water Surface
-    const riverGeo = new THREE.PlaneGeometry(75, 8.5);
+    const riverGeo = new THREE.PlaneGeometry(75, 9.0);
     riverGeo.rotateX(-Math.PI / 2);
     const riverMesh = new THREE.Mesh(riverGeo, GameMaterials.riverWater);
-    riverMesh.position.set(0, -0.05, 7.0);
+    riverMesh.position.set(0, -0.06, 7.0);
     this.scene.add(riverMesh);
 
     // Stone Retaining Walls along the Riverbanks (Flanking the bridge)
@@ -358,27 +327,28 @@ export class Game3D {
     // -----------------------------------------------------------------------
     const mountainGroup = new THREE.Group();
     const mountainPeaks = [
-      { x: -28, z: 72, r: 18, h: 26 },
-      { x: -10, z: 80, r: 22, h: 32 },
-      { x: 12, z: 76, r: 20, h: 28 },
-      { x: 30, z: 70, r: 16, h: 24 },
+      { x: -32, z: 96, r: 24, h: 32 },
+      { x: -12, z: 104, r: 28, h: 38 },
+      { x: 14, z: 100, r: 26, h: 35 },
+      { x: 34, z: 94, r: 22, h: 30 },
     ];
 
     for (const mp of mountainPeaks) {
-      const peakGeo = new THREE.ConeGeometry(mp.r, mp.h, 7);
+      const peakGeo = new THREE.ConeGeometry(mp.r, mp.h, 8);
       const peak = new THREE.Mesh(peakGeo, GameMaterials.mountainRock);
-      peak.position.set(mp.x, mp.h / 2 - 2, mp.z);
+      peak.position.set(mp.x, mp.h / 2 - 4, mp.z);
       peak.rotation.y = Math.random() * Math.PI;
       mountainGroup.add(peak);
 
-      // Snow-capped peak summit
-      const snowGeo = new THREE.ConeGeometry(mp.r * 0.35, mp.h * 0.35, 7);
-      const snowMat = new THREE.MeshStandardMaterial({ color: 0xf5f5f5, roughness: 0.6 });
+      // Subtle snow cap
+      const snowGeo = new THREE.ConeGeometry(mp.r * 0.32, mp.h * 0.32, 8);
+      const snowMat = new THREE.MeshStandardMaterial({ color: 0xccd7e0, roughness: 0.7 });
       const snow = new THREE.Mesh(snowGeo, snowMat);
-      snow.position.set(mp.x, mp.h * 0.85 - 2, mp.z);
+      snow.position.set(mp.x, mp.h * 0.84 - 4, mp.z);
       snow.rotation.y = peak.rotation.y;
       mountainGroup.add(snow);
     }
+    this.scene.add(mountainGroup);
     this.scene.add(mountainGroup);
 
     // -----------------------------------------------------------------------
@@ -457,15 +427,13 @@ export class Game3D {
   public setCameraMode(mode: CameraMode): void {
     this.cameraMode = mode;
     if (mode === 'tactical') {
-      this.targetCameraPos.set(0, 21, -19);
-      this.targetCameraLook.set(0, 2.5, 9);
-      if (this.tiltShiftPass) this.tiltShiftPass.enabled = true;
+      this.targetCameraPos.set(0, 18, -17);
+      this.targetCameraLook.set(0, 2.2, 11);
     } else {
       // Rampart Marksman View: tracks player archer position!
       const playerY = Math.abs(this.playerX) > 11.8 ? 8.5 : 6.4;
       this.targetCameraPos.set(this.playerX, playerY + 1.8, -6.0);
       this.targetCameraLook.set(this.playerX, 2.5, 24);
-      if (this.tiltShiftPass) this.tiltShiftPass.enabled = false;
     }
   }
 
@@ -623,7 +591,6 @@ export class Game3D {
       this.camera.aspect = window.innerWidth / window.innerHeight;
       this.camera.updateProjectionMatrix();
       this.renderer.setSize(window.innerWidth, window.innerHeight);
-      this.composer.setSize(window.innerWidth, window.innerHeight);
     });
 
     // Pointer Move
@@ -1194,22 +1161,12 @@ export class Game3D {
     }, 1400);
   }
 
-  public togglePostProcessing(): boolean {
-    this.isPostProcessingEnabled = !this.isPostProcessingEnabled;
-    return this.isPostProcessingEnabled;
-  }
-
   private render(): void {
-    if (this.isPostProcessingEnabled) {
-      this.composer.render();
-    } else {
-      this.renderer.render(this.scene, this.camera);
-    }
+    this.renderer.render(this.scene, this.camera);
   }
 
   public destroy(): void {
     this.isRunning = false;
-    this.composer.dispose();
     this.renderer.dispose();
   }
 }

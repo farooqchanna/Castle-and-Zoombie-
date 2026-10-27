@@ -627,9 +627,6 @@ export class UIManager {
             <button class="btn-upgrade" id="btn-pause-view" style="padding: 10px; font-size: 14px; font-weight: 700;">
               🎥 View: Tactical 3D
             </button>
-            <button class="btn-upgrade" id="btn-pause-graphics" style="padding: 10px; font-size: 14px; font-weight: 700;">
-              ✨ Graphics: Ultra Diorama (ON)
-            </button>
             <button class="btn-upgrade" id="btn-restart-wave" style="padding: 10px; font-size: 14px; font-weight: 700; background: linear-gradient(135deg, #c62828, #e53935); color: #fff;">
               🔄 Restart Current Wave
             </button>
@@ -650,14 +647,6 @@ export class UIManager {
       this.pauseModalElement.querySelector('#btn-pause-view')?.addEventListener('click', () => {
         this.game.toggleCameraMode();
         this.updateCameraUi();
-      });
-
-      this.pauseModalElement.querySelector('#btn-pause-graphics')?.addEventListener('click', () => {
-        const enabled = this.game.togglePostProcessing();
-        const btn = document.getElementById('btn-pause-graphics');
-        if (btn) {
-          btn.textContent = enabled ? '✨ Graphics: Ultra Diorama (ON)' : '✨ Graphics: Standard (OFF)';
-        }
       });
 
       this.pauseModalElement.querySelector('#btn-restart-wave')?.addEventListener('click', () => {
